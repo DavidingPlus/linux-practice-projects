@@ -11,12 +11,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 # 添加可执行文件 client
 add_executable(client
-    test/client.cpp
+    src/client.cpp
 )
 
 # 添加可执行文件 server
 add_executable(server
-    test/server.cpp
+    src/server.cpp
 )
 
 # 指定头文件的搜索路径，要放在前面两个的后面，因为是根据可执行文件指定的

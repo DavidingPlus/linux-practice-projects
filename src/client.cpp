@@ -9,11 +9,15 @@
  *
  */
 
+#include <cstring>
 #include <iostream>
 #include <string>
 using namespace std;
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <unistd.h>
+
+#define Max_Buffer_Size 1024
 
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
@@ -47,8 +51,40 @@ int main(int argc, char* const argv[]) {
         return -1;
     }
 
+    cout << "连接成功,开始通信!" << endl;
+
     // 3.通信逻辑
-    // TODO
+    // 输入需要下载的文件的名字
+    cout << "请输入您需要下载的文件名称: ";
+    string file_name;
+    cin >> file_name;
+
+    // 向服务器发送这个名字
+    send(connect_fd, file_name.c_str(), file_name.size(), 0);
+
+    // 创建一个新文件用于存储接收到的文件
+    int fd = open(file_name.c_str(), O_RDWR | O_CREAT, 0664);
+    if (-1 == fd) {
+        perror("open");
+        return -1;
+    }
+
+    // 接受数据
+    char read_buf[Max_Buffer_Size] = {0};
+    while (1) {
+        bzero(read_buf, sizeof(read_buf));
+        int len = recv(connect_fd, read_buf, sizeof(read_buf) - 1, 0);
+        if (-1 == len) {
+            perror("recv");
+            return -1;
+        }
+        if (0 == len) {
+            cout << "文件接受完毕!" << endl;
+            break;
+        }
+
+        write(fd, read_buf, len);  // 这里最好用len好一点，因为数据里面有没有'\0'我们不知道，用strlen就可能会出问题
+    }
 
     // 4.关闭
     close(connect_fd);
