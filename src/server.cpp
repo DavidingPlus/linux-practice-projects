@@ -14,12 +14,16 @@
 using namespace std;
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #define Max_Buffer_Size 1024
 
 // 存储文件的相对路径
 static const string prefix_path = "../resources/";
+
+// 子线程的业务函数
+void* Work_Callback(void* args);
 
 int main() {
     // 先用单进程实现一个简单的，再考虑后续的逻辑
@@ -60,14 +64,32 @@ int main() {
     }
 
     // 4.建立连接
-    struct sockaddr_in client_addr;
-    socklen_t client_addr_len = sizeof(client_addr);
+    // 这里建立了连接之后，主线程继续监听，创建一个子线程去处理业务逻辑
+    while (1) {
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
 
-    int connect_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-    if (-1 == connect_fd) {
-        perror("accept");
-        return -1;
+        int connect_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_addr_len);
+        if (-1 == connect_fd) {
+            perror("accept");
+            return -1;
+        }
+
+        // 创建子线程
+        pthread_t tid;
+        pthread_create(&tid, nullptr, Work_Callback, &connect_fd);
+        pthread_detach(tid);  // 设置线程分离，自动回收
     }
+
+    // 6.关闭
+
+    close(listen_fd);
+
+    return 0;
+}
+
+void* Work_Callback(void* args) {
+    int connect_fd = *(int*)args;
 
     // 5.通信逻辑
     // 读取客户端请求的文件名字
@@ -75,15 +97,14 @@ int main() {
     int len = recv(connect_fd, file_name, sizeof(file_name - 1), 0);
     if (-1 == len) {
         perror("recv");
-        return -1;
+        exit(-1);
     }
 
     // 去存储文件的路径去查询对应的文件
     string file_path = prefix_path + string(file_name);
 
-    // 判断是否存在
+    // 判断文件是否存在
     if (0 != access(file_path.c_str(), F_OK)) {
-        // 后续逻辑
         // TODO
     } else {
         // 我们将一个文件的内容视作二进制流，用read去读取，一个字节一个字节的读取，然后打印出来
@@ -92,7 +113,7 @@ int main() {
         int fd = open(file_path.c_str(), O_RDONLY);
         if (-1 == fd) {
             perror("open");
-            return -1;
+            exit(-1);
         }
 
         char read_buf[Max_Buffer_Size] = {0};
@@ -102,9 +123,9 @@ int main() {
             int len = read(fd, read_buf, sizeof(read_buf) - 1);
             if (-1 == len) {
                 perror("read");
-                return -1;
+                exit(-1);
             }
-            if (0 == len)
+            if (0 == len)  // 读取到文件末尾
                 break;
 
             // 发送给服务端
@@ -112,9 +133,7 @@ int main() {
         }
     }
 
-    // 6.关闭
     close(connect_fd);
-    close(listen_fd);
 
-    return 0;
+    return nullptr;
 }
