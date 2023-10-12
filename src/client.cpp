@@ -19,6 +19,8 @@ using namespace std;
 
 #define Max_Buffer_Size 1024
 
+static const string prefix_path = "../copy/";
+
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
     if (argc < 3) {
@@ -59,11 +61,13 @@ int main(int argc, char* const argv[]) {
     string file_name;
     cin >> file_name;
 
+    string file_path = prefix_path + file_name;
+
     // 向服务器发送这个名字
     send(connect_fd, file_name.c_str(), file_name.size(), 0);
 
     // 创建一个新文件用于存储接收到的文件
-    int fd = open(file_name.c_str(), O_RDWR | O_CREAT, 0755);
+    int fd = open(file_path.c_str(), O_RDWR | O_CREAT, 0755);
     if (-1 == fd) {
         perror("open");
         return -1;
