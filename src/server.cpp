@@ -127,7 +127,6 @@ void* Work_Callback(void* args) {
 
         // 判断文件是否存在
         // 不管存在或者不存在，我们都需要向客户端发送一个数据，客户端得到正确的数据才能进行后续操作
-
         if (0 != access(file_path.c_str(), F_OK))
             info = "no";
         else
