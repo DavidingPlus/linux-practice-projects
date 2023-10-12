@@ -63,7 +63,7 @@ int main(int argc, char* const argv[]) {
     send(connect_fd, file_name.c_str(), file_name.size(), 0);
 
     // 创建一个新文件用于存储接收到的文件
-    int fd = open(file_name.c_str(), O_RDWR | O_CREAT, 0664);
+    int fd = open(file_name.c_str(), O_RDWR | O_CREAT, 0755);
     if (-1 == fd) {
         perror("open");
         return -1;
