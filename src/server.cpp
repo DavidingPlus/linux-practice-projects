@@ -116,7 +116,7 @@ void* Work_Callback(void* args) {
     while ("yes" != info) {
         // 读取客户端请求的文件名字
         bzero(file_name, sizeof(file_name));
-        int len = recv(connect_fd, file_name, sizeof(file_name - 1), 0);
+        int len = recv(connect_fd, file_name, sizeof(file_name) - 1, 0);
         if (-1 == len) {
             perror("recv");
             exit(-1);
