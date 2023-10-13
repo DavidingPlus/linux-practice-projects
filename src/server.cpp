@@ -125,6 +125,8 @@ void* Work_Callback(void* args) {
     // 不管存在或者不存在，我们都需要向客户端发送一个数据，客户端得到正确的数据才能进行后续操作
     if (0 != access(file_path.c_str(), F_OK)) {
         // TODO
+        exit(-1);
+        return nullptr;
     }
 
     // 我们将一个文件的内容视作二进制流，用read去读取，一个字节一个字节的读取，然后打印出来
