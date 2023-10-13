@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-    cout << "你是我儿" << endl;
+    cout << "yjx是lzx的儿子" << endl;
 
     return 0;
 }
