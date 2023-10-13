@@ -110,28 +110,21 @@ void* Work_Callback(void* args) {
     in_port_t client_port = static_cast<Pthread_Args*>(args)->client_port;
 
     // 5.通信逻辑
-    string info = "no";
-    string file_path;
     char file_name[Max_Buffer_Size] = {0};
-    while ("yes" != info) {
-        // 读取客户端请求的文件名字
-        bzero(file_name, sizeof(file_name));
-        int len = recv(connect_fd, file_name, sizeof(file_name) - 1, 0);
-        if (-1 == len) {
-            perror("recv");
-            exit(-1);
-        }
+    // 读取客户端请求的文件名字
+    int len = recv(connect_fd, file_name, sizeof(file_name) - 1, 0);
+    if (-1 == len) {
+        perror("recv");
+        exit(-1);
+    }
 
-        // 去存储文件的路径去查询对应的文件
-        file_path = prefix_path + string(file_name);
+    // 去存储文件的路径去查询对应的文件
+    string file_path = prefix_path + string(file_name);
 
-        // 判断文件是否存在
-        // 不管存在或者不存在，我们都需要向客户端发送一个数据，客户端得到正确的数据才能进行后续操作
-        if (0 != access(file_path.c_str(), F_OK))
-            info = "no";
-        else
-            info = "yes";
-        send(connect_fd, info.c_str(), info.size(), 0);
+    // 判断文件是否存在
+    // 不管存在或者不存在，我们都需要向客户端发送一个数据，客户端得到正确的数据才能进行后续操作
+    if (0 != access(file_path.c_str(), F_OK)) {
+        // TODO
     }
 
     // 我们将一个文件的内容视作二进制流，用read去读取，一个字节一个字节的读取，然后打印出来

@@ -55,32 +55,23 @@ int main(int argc, char* const argv[]) {
 
     cout << "连接成功,开始通信!" << endl;
 
-    string file_path;
-    char read_buf[Max_Buffer_Size] = {0};
     // 3.通信逻辑
-    while (1) {
-        // 输入需要下载的文件的名字
-        cout << "请输入您需要下载的文件名称: ";
-        string file_name;
-        cin >> file_name;
+    // 输入需要下载的文件的名字
+    cout << "请输入您需要下载的文件名称: ";
+    string file_name;
+    cin >> file_name;
 
-        file_path = prefix_path + file_name;
+    string file_path = prefix_path + file_name;
 
-        // 向服务器发送这个名字
-        send(connect_fd, file_name.c_str(), file_name.size(), 0);
+    // 向服务器发送这个名字
+    send(connect_fd, file_name.c_str(), file_name.size(), 0);
 
-        // 发送了请求的文件之后需要接收返回值，只有返回值正确才能继续
-        bzero(read_buf, sizeof(read_buf));
-        int len = recv(connect_fd, read_buf, sizeof(read_buf) - 1, 0);
-        if (-1 == len) {
-            perror("recv");
-            return -1;
-        }
-        if (0 == strcmp("yes", read_buf))
-            break;
-
-        // 名字不对
-        cout << "您输入的文件不存在,请重新输入!" << endl;
+    // 发送了请求的文件之后需要接收返回值，只有返回值正确才能继续
+    char read_buf[Max_Buffer_Size] = {0};
+    int len = recv(connect_fd, read_buf, sizeof(read_buf) - 1, 0);
+    if (-1 == len) {
+        perror("recv");
+        return -1;
     }
 
     // 创建一个新文件用于存储接收到的文件
