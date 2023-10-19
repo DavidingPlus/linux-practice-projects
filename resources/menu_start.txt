@@ -1,0 +1,24 @@
+欢迎来到本微型数据库系统，请按照以下要求输入相应命令。
+命令 请注意区分大小写 并且 请以英文分号';'结尾 并且 参照如下的格式要求：
+
+    create database <dbname>; (创建数据库)
+
+    drop database <dbname>; (销毁数据库)
+
+    use <dbname>; (切换数据库)
+
+    create table <table-name> (
+        <column> <type> [primary],
+        ...
+    ); (创建表)
+
+    drop table <table-name>; (删除表)
+
+    select <column> from <table> [where <cond>]; (根据条件(如果有)查询表，显示查询结果)
+
+    delete <table> [where <cond>]; (根据条件(如果有)删除表中的记录)
+
+    insert <table> values (<const-value>[, <const-value>...]); (在表中插入数据)
+
+    update <table> set <column> = <const-value> [where <cond>]; (根据条件(如果有)更新表中的记录。如无条件，则更新整张表)
+
