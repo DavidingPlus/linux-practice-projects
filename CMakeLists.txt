@@ -6,6 +6,9 @@ set (CMAKE_CXX_COMPILER "/usr/bin/g++-13")
 
 project(MyProject)
 
+#设置CMake_Build_Type
+set(CMAKE_BUILD_TYPE Debug)
+
 # 设置 C++ 标准
 set(CMAKE_CXX_STANDARD 20)
 
