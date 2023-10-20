@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD 20)
 # 添加可执行文件 app
 add_executable(app
     src/mymenu.cpp
+    src/order.cpp
     test/main.cpp
 )
 

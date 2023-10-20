@@ -17,6 +17,8 @@
 #include <iostream>
 #include <string>
 
+#include "order.h"
+
 /**
  * @brief 菜单类
  */
@@ -67,43 +69,16 @@ public:
 
 private:
     /**
-     * @brief 打开对应位置的文件，并且将里面的内容打印出来
-     * @param  path，文件对应的目录，可能是绝对路径，也可能是相对路径
-     */
-    void _open_print(const std::string& path);
-
-    /**
      * @brief 让用户输入命令，并且存储在类内command字符串对象中
      * @return 返回一个bool值来表示用户是否输入了结束的命令，程序需要退出
      */
     bool _command_input();
 
-    /**
-     * @brief 根据给定的命令找到对应的命令类型，在这个函数当中不考虑命令的具体合理性问题，这个交给另一个类去做，我们只是初步判断这个命令可能的类型
-     * @param  command，命令字符串
-     * @return Command_Type，命令枚举类型
-     */
-    Command_Type _get_type(const std::string& command);
-
-    /**
-     * @brief 和上面的函数配套使用，在确定是create和drop的前提下进一步确定是database还是table
-     * @param  pos，第一个空格在原命令字符串当中的下标
-     * @param  command，原命令字符串
-     * @param  first，确认第一个参数是create还是drop，true代表是create，false代表是drop
-     * @return Command_Type，命令枚举类型
-     */
-    Command_Type _get_database_table(size_t pos, const std::string& command, bool first);
-
 private:
     /**
-     * @brief 存储当前用户输入命令的字符串
+     * @brief 维护一个命令管理Order对象，以后的命令都是由这里进行操作
      */
-    std::string command;
-
-    /**
-     * @brief 与上面字符串命令对应的命令类型
-     */
-    Command_Type cmd_type = Unknown;
+    Order order;
 };
 
 #endif

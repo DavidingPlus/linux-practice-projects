@@ -1,6 +1,8 @@
 欢迎来到本微型数据库系统，请按照以下要求输入相应命令。
 命令 请注意区分大小写 并且 请以英文分号';'结尾 并且 参照如下的格式要求：
 
+    show info;(展示命令模板，也就是这一页中的内容)
+
     create database <dbname>; (创建数据库)
 
     drop database <dbname>; (销毁数据库)
@@ -21,4 +23,6 @@
     insert <table> values (<const-value>[, <const-value>...]); (在表中插入数据)
 
     update <table> set <column> = <const-value> [where <cond>]; (根据条件(如果有)更新表中的记录。如无条件，则更新整张表)
+
+    q; / quit; (退出)
 
