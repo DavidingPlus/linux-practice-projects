@@ -109,9 +109,11 @@ void Order::run() {
 
 Order::Command_Type Order::_get_type(const std::string& command) {
     // 经过我们输入的处理之后字符串的开头肯定是有含义的字符，所以实现这个函数用于得到命令的类型
-    // 退出命令找不到空格，我们直接在这里判断即可
+    // 退出命令和展示命令找不到空格，我们直接在这里判断即可
     if ("q" == command or "quit" == command)
         return Command_Type::Quit;
+    if ("show" == command)
+        return Command_Type::Show;
 
     // 在众多命令当中，只有create和drop是可以分为两种情况的，作用于数据库和表
     size_t pos = command.find(' ');
@@ -119,9 +121,7 @@ Order::Command_Type Order::_get_type(const std::string& command) {
 
     // std::cout << sub_cmd << std::endl;
 
-    if ("show" == sub_cmd)
-        return Command_Type::Show;
-    else if ("create" == sub_cmd)
+    if ("create" == sub_cmd)
         return _get_database_table(pos, command, true);
     else if ("drop" == sub_cmd)
         return _get_database_table(pos, command, false);
@@ -160,12 +160,8 @@ void Order::_deal_quit() {
 }
 
 void Order::_deal_show() {
-    // 进行细致判断
-    // 我只考虑一般的情况，其他的我不考虑
-    if ("show info" == m_command)
-        _open_print("../resources/menu_start.txt");
-    else
-        _deal_unknown();
+    // 同退出的逻辑一样，进入这里一定是正确的命令
+    _open_print("../resources/menu_start.txt");
 }
 
 void Order::_deal_create_database() {
