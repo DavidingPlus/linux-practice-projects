@@ -86,6 +86,7 @@ void Order::run() {
         _deal_create_database();
         break;
     case Drop_Database:
+        _deal_drop_database();
         break;
     case Use:
         break;
@@ -175,7 +176,7 @@ void Order::_deal_create_database() {
         return;
     }
 
-    // 现在该拿到目录的path了
+    // 现在该拿到目录的name了
     std::string name = m_command.substr(pos + 1, m_command.size());
     if (std::string::npos != name.find(' ')) {
         _deal_unknown();
@@ -194,11 +195,65 @@ void Order::_deal_create_database() {
     // 先判断目录是否存在
     std::string path = database_prefix + name;
     if (0 == access(path.c_str(), F_OK))
-        std::cout << "数据库已存在,请检查名称并修改!" << std::endl;
+        std::cout << "该命名的数据库已存在,请检查名称并修改!" << std::endl;
     else {
         mkdir(path.c_str(), 0755);
-        std::cout << "数据库创建成功!" << std::endl;
+        std::cout << "数据库创建成功! 名称: " << name << std::endl;
     }
+}
+
+void Order::_deal_drop_database() {
+    // 大体的逻辑同创建数据库一样
+    size_t pos = strlen("drop database");
+
+    if (' ' != m_command[pos]) {
+        _deal_unknown();
+        return;
+    }
+
+    std::string name = m_command.substr(pos + 1, m_command.size());
+    if (std::string::npos != name.find(' ')) {
+        _deal_unknown();
+        return;
+    }
+
+    // 得到数据库名字，先看存不存在
+    std::string path = database_prefix + name;
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "目标数据库不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+    // 检查目录是否为空
+    DIR* dir = opendir(path.c_str());
+    if (nullptr == dir) {
+        perror("opendir");
+        exit(-1);
+    }
+
+    // 循环读取目录中的文件项内容，如果除了"."和".."以外的就是非空，注意名字里面没有 /
+    while (1) {
+        // 读到末尾或者错误都返回nullptr，为了区分，man文档建议我们把errno设置为0，没变就是没错误
+        errno = 0;
+        struct dirent* file = readdir(dir);
+        if (nullptr == file) {
+            if (0 != errno) {
+                perror("readdir");
+                exit(-1);
+            }
+            // 退出
+            break;
+        }
+
+        // 判断是否为空
+        // std::cout << file->d_name << std::endl;
+        if ("." != std::string(file->d_name) and ".." != std::string(file->d_name)) {
+            std::cout << "目标数据库不为空,请将数据库清空之后再次尝试!" << std::endl;
+            return;
+        }
+    }
+    // 删除目录
+    rmdir(path.c_str());  // rmdir只能删除空目录，虽然可以通过错误号判断是错误还是非空目录，但是还是从上面的代码来吧
+    std::cout << "目标数据库删除成功!" << std::endl;
 }
 
 void Order::_deal_unknown() {

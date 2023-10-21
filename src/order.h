@@ -12,6 +12,7 @@
 #ifndef _ORDER_H_
 #define _ORDER_H_
 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -125,6 +126,11 @@ private:
      * @brief 处理Create_Database类型命令
      */
     void _deal_create_database();
+
+    /**
+     * @brief 处理Drop_Database类型命令
+     */
+    void _deal_drop_database();
 
     /**
      * @brief 处理Unknown类型命令
