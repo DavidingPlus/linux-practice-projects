@@ -98,16 +98,22 @@ void Order::run() {
         _deal_use();
         break;
     case Create_Table:
+        _deal_create_table();
         break;
     case Drop_Table:
+        _deal_drop_table();
         break;
     case Select:
+        _deal_select();
         break;
     case Delete:
+        _deal_delete();
         break;
     case Insert:
+        _deal_insert();
         break;
     case Update:
+        _deal_update();
         break;
     case Unknown:
         _deal_unknown();
@@ -358,6 +364,30 @@ void Order::_deal_use() {
     // 更改使用的数据库目录
     m_dbname = command_dbname;
     std::cout << "已切换到数据库 " << m_dbname << std::endl;
+}
+
+void Order::_deal_create_table() {
+    // TODO
+}
+
+void Order::_deal_drop_table() {
+    // TODO
+}
+
+void Order::_deal_select() {
+    // TODO
+}
+
+void Order::_deal_delete() {
+    // TODO
+}
+
+void Order::_deal_insert() {
+    // TODO
+}
+
+void Order::_deal_update() {
+    // TODO
 }
 
 void Order::_deal_unknown() {

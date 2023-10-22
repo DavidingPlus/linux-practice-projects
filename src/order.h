@@ -168,6 +168,36 @@ private:
     void _deal_use();
 
     /**
+     * @brief 处理Create_Table类型命令
+     */
+    void _deal_create_table();
+
+    /**
+     * @brief 处理Drop_Table类型命令
+     */
+    void _deal_drop_table();
+
+    /**
+     * @brief 处理Select类型命令
+     */
+    void _deal_select();
+
+    /**
+     * @brief 处理Delete类型命令
+     */
+    void _deal_delete();
+
+    /**
+     * @brief 处理Insert类型命令
+     */
+    void _deal_insert();
+
+    /**
+     * @brief 处理Update类型命令
+     */
+    void _deal_update();
+
+    /**
      * @brief 处理Unknown类型命令
      */
     void _deal_unknown();
