@@ -62,10 +62,6 @@ void Order::clear() {
     m_command_type = Unknown;
 }
 
-std::string Order::get_command() {
-    return m_command;
-}
-
 void Order::set_command(const std::string& order) {
     m_command = order;
 }
@@ -78,6 +74,9 @@ void Order::run() {
     switch (m_command_type) {
     case Show:
         _deal_show();
+        break;
+    case Tree:
+        _deal_tree();
         break;
     case Quit:
         _deal_quit();
@@ -110,11 +109,13 @@ void Order::run() {
 
 Order::Command_Type Order::_get_type(const std::string& command) {
     // 经过我们输入的处理之后字符串的开头肯定是有含义的字符，所以实现这个函数用于得到命令的类型
-    // 退出命令和展示命令找不到空格，我们直接在这里判断即可
+    // 退出命令，展示命令和Tree命令查看所有的时候找不到空格，我们直接在这里判断即可
     if ("q" == command or "quit" == command)
         return Command_Type::Quit;
     if ("show" == command)
         return Command_Type::Show;
+    if ("tree" == command)
+        return Command_Type::Tree;
 
     // 在众多命令当中，只有create和drop是可以分为两种情况的，作用于数据库和表
     size_t pos = command.find(' ');
@@ -122,7 +123,9 @@ Order::Command_Type Order::_get_type(const std::string& command) {
 
     // std::cout << sub_cmd << std::endl;
 
-    if ("create" == sub_cmd)
+    if ("tree" == sub_cmd)  // tree <dbname>
+        return Command_Type::Tree;
+    else if ("create" == sub_cmd)
         return _get_database_table(pos, command, true);
     else if ("drop" == sub_cmd)
         return _get_database_table(pos, command, false);
@@ -163,6 +166,41 @@ void Order::_deal_quit() {
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
     _open_print("../resources/menu_start.txt");
+}
+
+void Order::_deal_tree() {
+    // 首先判断命令是否为正确的tree命令
+    // tree 或者 tree <dbname>，因此出现两个或者两个以上的括号是不合法的
+    size_t pos = m_command.find(' ');
+    if (std::string::npos != pos) {
+        // 查询第二个空格
+        std::string sub_cmd = m_command.substr(pos + 1, m_command.size());
+        if (std::string::npos != sub_cmd.find(' ')) {
+            _deal_unknown();
+            return;
+        }
+    }
+    // 开一个子进程
+    pid_t pid = fork();
+    if (-1 == pid) {
+        perror("fork");
+        exit(-1);
+    }
+
+    if (pid > 0) {
+        // 父进程，阻塞等待回收子进程
+        pid_t ret = wait(nullptr);
+        if (-1 == ret) {
+            perror("wait");
+            exit(-1);
+        }
+    } else if (0 == pid) {
+        std::cout << std::endl
+                  << "数据库目录架构如下所示: " << std::endl;
+
+        // 子进程逻辑，调用exec函数族执行tree命令
+        execlp("tree", "tree", database_prefix.c_str(), "-a", nullptr);
+    }
 }
 
 void Order::_deal_create_database() {

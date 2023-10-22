@@ -64,7 +64,6 @@ bool Menu::_command_input() {
 
     // 命令输入结束之后将Order中的命令字符串修改
     order.set_command(command);
-    // std::cout << order.get_command() << std::endl;
 
     // 执行这条命令
     // 注意，我们的退出是在菜单里面做的，因为我自己认为没必要放到Order类当中

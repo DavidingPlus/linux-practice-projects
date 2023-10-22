@@ -14,6 +14,7 @@
 
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <cstring>
@@ -32,6 +33,7 @@ public:
     /**
      * @brief 存储输入的命令的类型，方便定位到指定的操作函数
      *  Show，展示命令的格式规范
+     *  Tree，展示数据库的目录架构
      *  Quit，退出程序
      *  Create_Database，创建数据库
      *  Drop_Database，销毁数据库
@@ -46,6 +48,7 @@ public:
      */
     enum Command_Type {
         Show = 0,
+        Tree,
         Quit,
         Create_Database,
         Drop_Database,
@@ -77,12 +80,6 @@ public:
     void clear();
 
     /**
-     * @brief 提供得到命令字符串的接口
-     * @return std::string，返回命令字符串
-     */
-    std::string get_command();
-
-    /**
      * @brief 设置命令字符串
      * @param  order，传入的命令字符串
      */
@@ -112,10 +109,32 @@ private:
 
     //***************************下面就是具体业务的函数逻辑***************************
 
+public:
+    /**
+     * @brief 定义线程回调函数的类型
+     */
+    using thread_callback = void*(void*);
+
+private:
+    // 这个线程函数设置在这里有问题，我想用exec函数族，但是这个函数是替换进程，不能用在线程身上，但是保留，做一个线程的参考
+    /**
+     * @brief 定义_deal_tree线程处理的回调函数
+     * @brief 这个函数需要是静态的，因为在类的内部传递函数指针不能依赖于类的实例化对象，所以需要定义成静态函数来使用作用域::就能访问到
+     * @param args，接受的参数
+     * @return void*，返回子线程执行的状态
+     */
+    // static void* _tree_callback(void* args);
+    // static thread_callback _tree_callback;
+
     /**
      * @brief 处理Show类型命令
      */
     void _deal_show();
+
+    /**
+     * @brief 处理Tree类型命令
+     */
+    void _deal_tree();
 
     /**
      * @brief 处理Quit类型命令

@@ -25,33 +25,6 @@
 class Menu {
 public:
     /**
-     * @brief 存储输入的命令的类型，方便定位到指定的操作函数
-     *  Create_Database，创建数据库
-     *  Drop_Database，销毁数据库
-     *  Use，切换数据库
-     *  Create_Table，创建表
-     *  Drop_Table，删除表
-     *  Select，查询表
-     *  Delete，删除表中的记录
-     *  Insert，在表中插入数据
-     *  Update，更新表中数据
-     *  Unknown，未知，表示命令可能出错
-     */
-    enum Command_Type {
-        Create_Database = 0,
-        Drop_Database,
-        Use,
-        Create_Table,
-        Drop_Table,
-        Select,
-        Delete,
-        Insert,
-        Update,
-        Unknown
-    };
-
-public:
-    /**
      * @brief 默认构造函数
      */
     Menu() = default;

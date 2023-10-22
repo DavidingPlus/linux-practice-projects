@@ -4,6 +4,8 @@
 
     show;(展示命令模板，也就是这一页中的内容)
 
+    tree; / tree <dbname>; (查看数据库的目录结构，可以选择查看所有的或者查看某个数据库)
+
     create database <dbname>; (创建数据库)
 
     drop database <dbname>; (销毁数据库)
