@@ -83,6 +83,9 @@ void Order::run() {
     case Quit:
         _deal_quit();
         break;
+    case Clear:
+        _deal_clear();
+        break;
     case Create_Database:
         _deal_create_database();
         break;
@@ -90,6 +93,7 @@ void Order::run() {
         _deal_drop_database();
         break;
     case Use:
+        _deal_use();
         break;
     case Create_Table:
         break;
@@ -111,13 +115,15 @@ void Order::run() {
 
 Order::Command_Type Order::_get_type(const std::string& command) {
     // 经过我们输入的处理之后字符串的开头肯定是有含义的字符，所以实现这个函数用于得到命令的类型
-    // 退出命令，展示命令和Tree命令查看所有的时候找不到空格，我们直接在这里判断即可
+    // 退出命令，展示命令，Tree命令查看所有，Clear命令 没有空格，我们直接在这里判断即可
     if ("q" == command or "quit" == command)
         return Command_Type::Quit;
     if ("show" == command)
         return Command_Type::Show;
     if ("tree" == command)
         return Command_Type::Tree;
+    if ("clear" == command)
+        return Command_Type::Clear;
 
     // 在众多命令当中，只有create和drop是可以分为两种情况的，作用于数据库和表
     size_t pos = command.find(' ');
@@ -159,17 +165,13 @@ Order::Command_Type Order::_get_database_table(size_t pos, const std::string& co
         return Command_Type::Unknown;
 }
 
-void Order::_deal_quit() {
-    // 从上面的逻辑判断，这个东西一定是对的指令
-    _open_print("../resources/menu_end.txt");
-    exit(0);
-}
-
+// show
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
     _open_print("../resources/menu_start.txt");
 }
 
+// tree / tree <dbname>
 void Order::_deal_tree() {
     // 首先判断命令是否为正确的tree命令
     // tree 或者 tree <dbname>，因此出现两个或者两个以上的括号是不合法的
@@ -186,7 +188,7 @@ void Order::_deal_tree() {
         // 有空格出现，说明想查询指定的数据库架构
         dbname = sub_cmd;
     }
-    // 开一个子进程
+    // 创建一个子进程
     pid_t pid = fork();
     if (-1 == pid) {
         perror("fork");
@@ -201,19 +203,53 @@ void Order::_deal_tree() {
             exit(-1);
         }
     } else if (0 == pid) {
-        std::cout << "数据库目录架构如下所示: " << std::endl;
-
-        // 子进程逻辑，调用exec函数族执行tree命令
+        // 判断这个数据库存不存在
         std::string path = database_prefix + dbname;
+        if (0 != access(path.c_str(), F_OK)) {
+            std::cout << "您指定的数据库不存在,请检查之后重新输入!" << std::endl;
+            // 结束子进程，否则子进程去跑父进程的菜单代码了，会紊乱
+            exit(0);
+        }
+
+        std::cout << "数据库目录架构如下所示: " << std::endl;
+        // 子进程逻辑，调用exec函数族执行tree命令
         execlp("tree", "tree", path.c_str(), "-I", "README.md", nullptr);  // 忽略目录中引导作用的README.md
     }
 }
 
+// q / quit
+void Order::_deal_quit() {
+    // 从上面的逻辑判断，这个东西一定是对的指令
+    _open_print("../resources/menu_end.txt");
+    exit(0);
+}
+
+// clear
+void Order::_deal_clear() {
+    // 调用exec函数族清空屏幕
+    pid_t pid = fork();
+    if (-1 == pid) {
+        perror("fork");
+        exit(-1);
+    }
+
+    if (pid > 0) {
+        // 父进程，阻塞等待回收子进程
+        int ret = waitpid(-1, nullptr, 0);
+        if (-1 == ret) {
+            perror("waitpid");
+            exit(-1);
+        }
+    } else if (0 == pid)
+        // 清空屏幕
+        execlp("clear", "clear", nullptr);
+}
+
+// create database <dbname>
 void Order::_deal_create_database() {
     // 进行更细致的判断
     // 前面的几个字符一定是 "create database"
     size_t pos = strlen("create database");
-
     // 由于我们把末尾的空格(如果存在)给弹掉了，所以现在正确的字符串第一个字符是空格，然后后面不存在空格了
     if (' ' != m_command[pos]) {
         _deal_unknown();
@@ -246,10 +282,10 @@ void Order::_deal_create_database() {
     }
 }
 
+// drop database <dbname>
 void Order::_deal_drop_database() {
     // 大体的逻辑同创建数据库一样
     size_t pos = strlen("drop database");
-
     if (' ' != m_command[pos]) {
         _deal_unknown();
         return;
@@ -300,8 +336,30 @@ void Order::_deal_drop_database() {
     std::cout << "目标数据库删除成功!" << std::endl;
 }
 
+// use <dbname>
+void Order::_deal_use() {
+    // 已经有一个空格了，剩下的部分不能存在空格
+    size_t pos = strlen("use");
+    std::string sub_cmd = m_command.substr(pos + 1, m_command.size());
+    if (std::string::npos != sub_cmd.find(' ')) {
+        _deal_unknown();
+        return;
+    }
+    // 判断这个数据库存不存在
+    std::string path = database_prefix + sub_cmd;
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "您指定的数据库不存在,请检查之后重新输入!" << std::endl;
+        return;
+    }
+
+    // 更改使用的数据库目录
+    m_dbname = sub_cmd;
+    std::cout << m_dbname << std::endl;
+}
+
 void Order::_deal_unknown() {
     m_command_type = Command_Type::Unknown;
+    m_dbname = std::string();
 
     std::cout << "您输入的命令不存在或者不正确,请检查之后重新输入!" << std::endl;
 }

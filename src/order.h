@@ -35,6 +35,7 @@ public:
      *  Show，展示命令的格式规范
      *  Tree，展示数据库的目录架构
      *  Quit，退出程序
+     *  Clear，清空屏幕
      *  Create_Database，创建数据库
      *  Drop_Database，销毁数据库
      *  Use，切换数据库
@@ -50,6 +51,7 @@ public:
         Show = 0,
         Tree,
         Quit,
+        Clear,
         Create_Database,
         Drop_Database,
         Use,
@@ -67,7 +69,6 @@ public:
      * @brief 默认构造函数
      */
     Order() = default;
-
     /**
      * @brief 默认析构函数
      */
@@ -142,6 +143,11 @@ private:
     void _deal_quit();
 
     /**
+     * @brief 处理Clear类型命令
+     */
+    void _deal_clear();
+
+    /**
      * @brief 处理Create_Database类型命令
      */
     void _deal_create_database();
@@ -150,6 +156,11 @@ private:
      * @brief 处理Drop_Database类型命令
      */
     void _deal_drop_database();
+
+    /**
+     * @brief 处理Use类型命令
+     */
+    void _deal_use();
 
     /**
      * @brief 处理Unknown类型命令
@@ -166,6 +177,11 @@ private:
      * @brief 与上面字符串命令对应的命令类型
      */
     Command_Type m_command_type = Unknown;
+
+    /**
+     * @brief 存储当前使用的数据库名称
+     */
+    std::string m_dbname;
 
     /**
      * @brief 文件目录或者文件名当中不能出现的字符集合

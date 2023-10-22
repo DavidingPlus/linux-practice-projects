@@ -6,6 +6,10 @@
 
     tree; / tree <dbname>; (查看数据库的目录结构，可以选择查看所有的或者查看某个数据库)
 
+    q; / quit; (退出)
+
+    clear; (清空屏幕)
+
     create database <dbname>; (创建数据库)
 
     drop database <dbname>; (销毁数据库)
@@ -26,6 +30,4 @@
     insert <table> values (<const-value>[, <const-value>...]); (在表中插入数据)
 
     update <table> set <column> = <const-value> [where <cond>]; (根据条件(如果有)更新表中的记录。如无条件，则更新整张表)
-
-    q; / quit; (退出)
 
