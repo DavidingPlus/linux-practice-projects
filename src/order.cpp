@@ -67,6 +67,8 @@ void Order::set_command(const std::string& order) {
 }
 
 void Order::run() {
+    std::cout << std::endl;
+
     // 首先肯定是要判断命令的类型
     // _get_type确定的是一个初步的类型，就是这个命令可能是属于这一个，具体是否属于我们调用针对性的处理函数就可以了
     m_command_type = _get_type(m_command);
@@ -171,6 +173,8 @@ void Order::_deal_show() {
 void Order::_deal_tree() {
     // 首先判断命令是否为正确的tree命令
     // tree 或者 tree <dbname>，因此出现两个或者两个以上的括号是不合法的
+    std::string dbname = std::string();
+
     size_t pos = m_command.find(' ');
     if (std::string::npos != pos) {
         // 查询第二个空格
@@ -179,6 +183,8 @@ void Order::_deal_tree() {
             _deal_unknown();
             return;
         }
+        // 有空格出现，说明想查询指定的数据库架构
+        dbname = sub_cmd;
     }
     // 开一个子进程
     pid_t pid = fork();
@@ -189,17 +195,17 @@ void Order::_deal_tree() {
 
     if (pid > 0) {
         // 父进程，阻塞等待回收子进程
-        pid_t ret = wait(nullptr);
+        int ret = waitpid(-1, nullptr, 0);
         if (-1 == ret) {
-            perror("wait");
+            perror("waitpid");
             exit(-1);
         }
     } else if (0 == pid) {
-        std::cout << std::endl
-                  << "数据库目录架构如下所示: " << std::endl;
+        std::cout << "数据库目录架构如下所示: " << std::endl;
 
         // 子进程逻辑，调用exec函数族执行tree命令
-        execlp("tree", "tree", database_prefix.c_str(), "-a", nullptr);
+        std::string path = database_prefix + dbname;
+        execlp("tree", "tree", path.c_str(), "-I", "README.md", nullptr);  // 忽略目录中引导作用的README.md
     }
 }
 
