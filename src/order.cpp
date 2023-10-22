@@ -17,7 +17,7 @@
 // '\\'其中一个\做转义字符，真正的字符是'\'
 std::vector<char> Order::banned_ch = {'\\', '/', ':', '*', '?', '"', '<', '>', '|'};
 
-std::string Order::database_prefix = "../DB/";
+std::string Order::database_prefix = "../data/";
 
 /**
  * @brief 实现extern类别函数_open_print
@@ -227,7 +227,7 @@ void Order::_deal_create_database() {
         return;
     }
 
-    // 我想要把数据库创建在DB目录中，需要做特殊字符的判断
+    // 我想要把数据库创建在data目录中，需要做特殊字符的判断
     // 不能出现 \ / : * ? " < > |
     for (auto& ch : banned_ch)
         if (std::string::npos != name.find(ch)) {
