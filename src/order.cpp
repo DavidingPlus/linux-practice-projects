@@ -15,9 +15,11 @@
  * @brief 初始化类内静态变量
  */
 // '\\'其中一个\做转义字符，真正的字符是'\'
-std::vector<char> Order::banned_ch = {'\\', '/', ':', '*', '?', '"', '<', '>', '|'};
+const std::vector<char> Order::banned_ch = {'\\', '/', ':', '*', '?', '"', '<', '>', '|'};
 
-std::string Order::database_prefix = "../data/";
+const std::string Order::data_prefix = "../data/";
+
+const std::string Order::resources_prefix = "../resources/";
 
 /**
  * @brief 实现extern类别函数open_and_print
@@ -168,7 +170,7 @@ Order::Command_Type Order::_get_database_table(size_t pos, const std::string& co
 // show
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
-    open_and_print("../resources/menu_start.txt");
+    open_and_print(resources_prefix + "menu_start.txt");
 }
 
 // tree / tree <dbname>
@@ -180,13 +182,13 @@ void Order::_deal_tree() {
     size_t pos = m_command.find(' ');
     if (std::string::npos != pos) {
         // 查询第二个空格
-        std::string sub_cmd = m_command.substr(pos + 1, m_command.size());
-        if (std::string::npos != sub_cmd.find(' ')) {
+        std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+        if (std::string::npos != command_dbname.find(' ')) {
             _deal_unknown();
             return;
         }
         // 有空格出现，说明想查询指定的数据库架构
-        dbname = sub_cmd;
+        dbname = command_dbname;
     }
     // 创建一个子进程
     pid_t pid = fork();
@@ -204,9 +206,9 @@ void Order::_deal_tree() {
         }
     } else if (0 == pid) {
         // 判断这个数据库存不存在
-        std::string path = database_prefix + dbname;
+        std::string path = data_prefix + dbname;
         if (0 != access(path.c_str(), F_OK)) {
-            std::cout << "您指定的数据库不存在,请检查之后重新输入!" << std::endl;
+            std::cout << "数据库 " << dbname << " 不存在,请检查之后重新输入!" << std::endl;
             // 结束子进程，否则子进程去跑父进程的菜单代码了，会紊乱
             exit(0);
         }
@@ -220,7 +222,7 @@ void Order::_deal_tree() {
 // q / quit
 void Order::_deal_quit() {
     // 从上面的逻辑判断，这个东西一定是对的指令
-    open_and_print("../resources/menu_end.txt");
+    open_and_print(resources_prefix + "menu_end.txt");
     exit(0);
 }
 
@@ -257,8 +259,8 @@ void Order::_deal_create_database() {
     }
 
     // 现在该拿到目录的name了
-    std::string name = m_command.substr(pos + 1, m_command.size());
-    if (std::string::npos != name.find(' ')) {
+    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
     }
@@ -266,19 +268,19 @@ void Order::_deal_create_database() {
     // 我想要把数据库创建在data目录中，需要做特殊字符的判断
     // 不能出现 \ / : * ? " < > |
     for (auto& ch : banned_ch)
-        if (std::string::npos != name.find(ch)) {
-            std::cout << "数据库名字当中带有非法字符,请重新输入!" << std::endl;
+        if (std::string::npos != command_dbname.find(ch)) {
+            std::cout << "数据库命名当中带有非法字符 '" << ch << "' ,请重新输入!" << std::endl;
             return;
         }
 
     // 然后开始创建数据库，就是创建一个目录
     // 先判断目录是否存在
-    std::string path = database_prefix + name;
+    std::string path = data_prefix + command_dbname;
     if (0 == access(path.c_str(), F_OK))
-        std::cout << "该命名的数据库已存在,请检查名称并修改!" << std::endl;
+        std::cout << "数据库 " << command_dbname << " 已存在,请检查名称并修改!" << std::endl;
     else {
         mkdir(path.c_str(), 0755);
-        std::cout << "数据库创建成功! 名称: " << name << std::endl;
+        std::cout << "数据库 " << command_dbname << " 创建成功!" << std::endl;
     }
 }
 
@@ -291,16 +293,16 @@ void Order::_deal_drop_database() {
         return;
     }
 
-    std::string name = m_command.substr(pos + 1, m_command.size());
-    if (std::string::npos != name.find(' ')) {
+    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
     }
 
     // 得到数据库名字，先看存不存在
-    std::string path = database_prefix + name;
+    std::string path = data_prefix + command_dbname;
     if (0 != access(path.c_str(), F_OK)) {
-        std::cout << "目标数据库不存在,请检查名称并修改!" << std::endl;
+        std::cout << "数据库 " << command_dbname << " 不存在,请检查名称并修改!" << std::endl;
         return;
     }
     // 检查目录是否为空
@@ -327,39 +329,40 @@ void Order::_deal_drop_database() {
         // 判断是否为空
         // std::cout << file->d_name << std::endl;
         if ("." != std::string(file->d_name) and ".." != std::string(file->d_name)) {
-            std::cout << "目标数据库不为空,请将数据库清空之后再次尝试!" << std::endl;
+            std::cout << "数据库 " << command_dbname << " 不为空,请将数据库清空之后再次尝试!" << std::endl;
             return;
         }
     }
     // 删除目录
     rmdir(path.c_str());  // rmdir只能删除空目录，虽然可以通过错误号判断是错误还是非空目录，但是还是从上面的代码来吧
-    std::cout << "目标数据库删除成功!" << std::endl;
+    std::cout << "数据库 " << command_dbname << " 删除成功!" << std::endl;
 }
 
 // use <dbname>
 void Order::_deal_use() {
     // 已经有一个空格了，剩下的部分不能存在空格
     size_t pos = strlen("use");
-    std::string sub_cmd = m_command.substr(pos + 1, m_command.size());
-    if (std::string::npos != sub_cmd.find(' ')) {
+    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
     }
     // 判断这个数据库存不存在
-    std::string path = database_prefix + sub_cmd;
+    std::string path = data_prefix + command_dbname;
     if (0 != access(path.c_str(), F_OK)) {
-        std::cout << "您指定的数据库不存在,请检查之后重新输入!" << std::endl;
+        m_dbname.clear();  // 清空数据库名字数据
+        std::cout << "数据库 " << command_dbname << " 不存在,请检查之后重新输入!" << std::endl;
         return;
     }
 
     // 更改使用的数据库目录
-    m_dbname = sub_cmd;
-    std::cout << m_dbname << std::endl;
+    m_dbname = command_dbname;
+    std::cout << "已切换到数据库 " << m_dbname << std::endl;
 }
 
 void Order::_deal_unknown() {
     m_command_type = Command_Type::Unknown;
-    m_dbname = std::string();
+    m_dbname.clear();
 
     std::cout << "您输入的命令不存在或者不正确,请检查之后重新输入!" << std::endl;
 }

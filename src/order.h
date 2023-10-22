@@ -108,15 +108,15 @@ private:
      */
     Command_Type _get_database_table(size_t pos, const std::string& command, bool first);
 
-    //***************************下面就是具体业务的函数逻辑***************************
+    //------------------------------------------------------------
 
-public:
+    // public:
     /**
      * @brief 定义线程回调函数的类型
      */
-    using thread_callback = void*(void*);
+    // using thread_callback = void*(void*);
 
-private:
+    // private:
     // 这个线程函数设置在这里有问题，我想用exec函数族，但是这个函数是替换进程，不能用在线程身上，但是保留，做一个线程的参考
     /**
      * @brief 定义_deal_tree线程处理的回调函数
@@ -126,6 +126,11 @@ private:
      */
     // static void* _tree_callback(void* args);
     // static thread_callback _tree_callback;
+
+    //------------------------------------------------------------
+
+private:
+    //***************************下面就是具体业务的函数逻辑***************************
 
     /**
      * @brief 处理Show类型命令
@@ -167,6 +172,22 @@ private:
      */
     void _deal_unknown();
 
+public:
+    /**
+     * @brief 文件目录或者文件名当中不能出现的字符集合
+     */
+    static const std::vector<char> banned_ch;
+
+    /**
+     * @brief 存放数据库的相对目录前缀
+     */
+    static const std::string data_prefix;
+
+    /**
+     * @brief 存放资源文件的相对目录前缀
+     */
+    static const std::string resources_prefix;
+
 private:
     /**
      * @brief 存储当前用户输入命令的字符串
@@ -182,16 +203,6 @@ private:
      * @brief 存储当前使用的数据库名称
      */
     std::string m_dbname;
-
-    /**
-     * @brief 文件目录或者文件名当中不能出现的字符集合
-     */
-    static std::vector<char> banned_ch;
-
-    /**
-     * @brief 存放数据库的相对目录前缀
-     */
-    static std::string database_prefix;
 };
 
 #endif
