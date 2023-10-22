@@ -17,7 +17,7 @@
 
 void Menu::run() {
     // 在../resources目录中存放着menu.txt，里面的内容就是数据库系统进入之后的提示内容
-    _open_print("../resources/menu_start.txt");
+    open_and_print("../resources/menu_start.txt");
 
     // 读入命令
     while (1)
@@ -25,7 +25,7 @@ void Menu::run() {
             break;
 
     // 结束，打印结束消息
-    _open_print("../resources/menu_end.txt");
+    open_and_print("../resources/menu_end.txt");
 }
 
 bool Menu::_command_input() {

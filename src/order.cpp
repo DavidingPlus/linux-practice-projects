@@ -20,9 +20,9 @@ std::vector<char> Order::banned_ch = {'\\', '/', ':', '*', '?', '"', '<', '>', '
 std::string Order::database_prefix = "../data/";
 
 /**
- * @brief 实现extern类别函数_open_print
+ * @brief 实现extern类别函数open_and_print
  */
-void _open_print(const std::string& path) {
+void open_and_print(const std::string& path) {
     // 打开文件
     FILE* file = fopen(path.c_str(), "r");
     if (nullptr == file) {
@@ -168,7 +168,7 @@ Order::Command_Type Order::_get_database_table(size_t pos, const std::string& co
 // show
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
-    _open_print("../resources/menu_start.txt");
+    open_and_print("../resources/menu_start.txt");
 }
 
 // tree / tree <dbname>
@@ -220,7 +220,7 @@ void Order::_deal_tree() {
 // q / quit
 void Order::_deal_quit() {
     // 从上面的逻辑判断，这个东西一定是对的指令
-    _open_print("../resources/menu_end.txt");
+    open_and_print("../resources/menu_end.txt");
     exit(0);
 }
 

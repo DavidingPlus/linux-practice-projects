@@ -26,7 +26,7 @@
  * @brief 打开对应位置的文件，并且将里面的内容打印出来，定义成为extern，因为两个源文件都需要使用
  * @param  path，文件对应的目录，可能是绝对路径，也可能是相对路径
  */
-extern void _open_print(const std::string& path);
+extern void open_and_print(const std::string& path);
 
 class Order {
 public:
