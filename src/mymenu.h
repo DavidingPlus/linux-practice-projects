@@ -49,7 +49,7 @@ private:
 
 private:
     /**
-     * @brief 维护一个命令管理Order对象，以后的命令都是由这里进行操作
+     * @brief 维护一个命令管理Order对象，以后的命令都是由这里进行操作(复合 composition)
      */
     Order order;
 };
