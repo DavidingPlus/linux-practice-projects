@@ -14,14 +14,14 @@ set(CMAKE_CXX_STANDARD 20)
 
 # 添加可执行文件
 add_executable(client
-    src/mymenu.cpp
-    src/order.cpp
+    src/client_menu.cpp
+    src/server_order.cpp
     test/client.cpp
 )
 
 add_executable(server
-    src/mymenu.cpp
-    src/order.cpp
+    src/client_menu.cpp
+    src/server_order.cpp
     test/server.cpp
 )
 

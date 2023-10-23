@@ -17,6 +17,8 @@
 #include <cstring>
 #include <iostream>
 
+#include "server_order.h"
+
 /**
  * @brief 定义ipv4地址的char*字符串最大程度
  */
@@ -136,7 +138,35 @@ int main() {
             }
             // 老客户端通信
             else {
-                // TODO
+                int connect_fd = ret_events[i].data.fd;
+
+                // 接受客户端的命令
+                char read_buf[BUFSIZ] = {0};
+                int len = recv(connect_fd, read_buf, BUFSIZ - 1, 0);
+                if (-1 == len) {
+                    // 非阻塞有两种特殊情况返回-1，但是我们这里遇不到
+                    // errno==EINTR，收到信号并从信号处理函数返回时，慢系统调用会返回并设置errno为EINTR，应该重新调用read。
+                    // errno==EAGAIN，表示当前暂时没有数据可读，应该稍后读取。
+                    perror("recv");
+                    return -1;
+                }
+                if (0 == len) {  // 客户端关闭
+                    // 从监听事件中删除
+                    ret = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connect_fd, nullptr);
+                    if (-1 == ret) {
+                        perror("epoll_ctl");
+                        return -1;
+                    }
+
+                    std::cout << "client (fd: " << connect_fd << ") has closed." << std::endl;
+
+                    // 关闭文件描述符
+                    close(connect_fd);
+                    break;
+                } else if (len > 0) {
+                    // TODO
+                    std::cout << "client (fd: " << connect_fd << ") send: " << read_buf << std::endl;
+                }
             }
         }
     }

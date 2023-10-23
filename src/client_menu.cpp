@@ -1,6 +1,6 @@
 /**
- * @file menu.cpp
- * @brief 菜单类的源文件
+ * @file client_menu.cpp
+ * @brief 客户端菜单类的源文件
  * @author lzx0626 (2065666169@qq.com)
  * @version 1.0
  * @date 2023-10-19
@@ -9,30 +9,18 @@
  *
  */
 
-#include "mymenu.h"
+#include "client_menu.h"
 
 /**
  * @brief 对类内函数的实现
  */
 
-void Menu::run() {
+std::string Menu::show() {
     // 在../resources目录中存放着menu.txt，里面的内容就是数据库系统进入之后的提示内容
     open_and_print(Order::resources_prefix + "menu_start.txt");
 
-    // 读入命令
-    while (1)
-        if (_command_input())
-            break;
-
-    // 结束，打印结束消息
-    open_and_print(Order::resources_prefix + "menu_end.txt");
-}
-
-bool Menu::_command_input() {
+    // 以下是输入命令并且处理命令字符串的逻辑
     puts("请输入命令: ");  // puts()自带换行符
-
-    // 一个一个字符读入，如果遇到';'则结束，将得到的命令存储在command中，等命令输入结束之后在Order中进行设置
-    order.clear();
 
     std::string command;
 
@@ -62,14 +50,5 @@ bool Menu::_command_input() {
     if (' ' == command.back())
         command.pop_back();
 
-    // 命令输入结束之后将Order中的命令字符串修改
-    order.set_command(command);
-
-    // 执行这条命令
-    // 注意，我们的退出是在菜单里面做的，因为我自己认为没必要放到Order类当中
-    order.run();
-
-    puts("");
-
-    return false;  // 这里的true和false是针对前面退出程序的判断来的，没有实际的逻辑含义
+    return command;
 }

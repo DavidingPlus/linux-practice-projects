@@ -1,6 +1,6 @@
 /**
- * @file menu.h
- * @brief 菜单类的头文件
+ * @file client_menu.h
+ * @brief 客户端菜单类的头文件
  * @author lzx0626 (2065666169@qq.com)
  * @version 1.0
  * @date 2023-10-19
@@ -17,7 +17,7 @@
 #include <iostream>
 #include <string>
 
-#include "order.h"
+#include "server_order.h"
 
 /**
  * @brief 菜单类
@@ -37,21 +37,9 @@ public:
 public:
     /**
      * @brief 菜单创建之后就会执行的函数
+     * @return std::string，返回输入之后经过适当处理之后的字符串
      */
-    void run();
-
-private:
-    /**
-     * @brief 让用户输入命令，并且存储在类内command字符串对象中
-     * @return 返回一个bool值来表示用户是否输入了结束的命令，程序需要退出
-     */
-    bool _command_input();
-
-private:
-    /**
-     * @brief 维护一个命令管理Order对象，以后的命令都是由这里进行操作(复合 composition)
-     */
-    Order order;
+    std::string show();
 };
 
 #endif

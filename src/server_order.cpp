@@ -1,6 +1,6 @@
 /**
- * @file order.cpp
- * @brief 处理输入命令类的源文件
+ * @file server_order.cpp
+ * @brief 服务端处理输入命令的类的头文件
  * @author lzx0626 (2065666169@qq.com)
  * @version 1.0
  * @date 2023-10-20
@@ -9,7 +9,7 @@
  *
  */
 
-#include "order.h"
+#include "server_order.h"
 
 /**
  * @brief 初始化类内静态变量

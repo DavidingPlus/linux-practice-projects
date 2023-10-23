@@ -10,11 +10,12 @@
  */
 
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <string>
 
-#include "mymenu.h"
+#include "client_menu.h"
 
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
@@ -51,7 +52,15 @@ int main(int argc, char* const argv[]) {
     std::cout << "服务器连接成功!" << std::endl;
 
     // 3.开始通信
-    // TODO
+    Menu m;
+    while (1) {
+        std::string send_commamd = m.show();
+        // std::cout << send_commamd << std::endl;
+        // 发送命令
+        send(connect_fd, send_commamd.c_str(), send_commamd.size(), 0);
+
+        // TODO
+    }
 
     // 4.关闭
     close(connect_fd);
