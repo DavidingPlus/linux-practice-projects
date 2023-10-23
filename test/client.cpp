@@ -1,6 +1,6 @@
 /**
  * @file client.cpp
- * @brief 客户端主程序
+ * @brief 客户端的主程序
  * @author lzx0626 (2065666169@qq.com)
  * @version 1.0
  * @date 2023-10-19
