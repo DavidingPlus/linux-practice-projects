@@ -64,6 +64,10 @@ void Order::clear() {
     m_command_type = Unknown;
 }
 
+std::string Order::get_command() const {
+    return m_command;
+}
+
 void Order::set_command(const std::string& order) {
     m_command = order;
 }

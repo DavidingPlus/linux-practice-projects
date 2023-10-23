@@ -81,6 +81,12 @@ public:
     void clear();
 
     /**
+     * @brief 获得当前的命令字符串
+     * @return std::string
+     */
+    std::string get_command() const;
+
+    /**
      * @brief 设置命令字符串
      * @param  order，传入的命令字符串
      */
