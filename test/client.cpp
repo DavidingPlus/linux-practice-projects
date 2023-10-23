@@ -25,7 +25,10 @@ int main(int argc, char* const argv[]) {
     }
 
     std::string server_ip = std::string(argv[1]);
-    unsigned short server_port = (unsigned short)atoi(argv[2]);
+    unsigned short server_port = atoi(argv[2]);
+
+    // 实例化菜单对象
+    Menu menu;
 
     // 1.创建socket套接字
     int connect_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -49,17 +52,38 @@ int main(int argc, char* const argv[]) {
         return -1;
     }
 
-    std::cout << "服务器连接成功!" << std::endl;
+    std::cout << "服务器连接成功!\n"
+              << std::endl;
 
     // 3.开始通信
-    Menu m;
+    char read_buf[BUFSIZ] = {0};
     while (1) {
-        std::string send_commamd = m.show();
+        std::string send_commamd = menu.run();
         // std::cout << send_commamd << std::endl;
+
         // 发送命令
         send(connect_fd, send_commamd.c_str(), send_commamd.size(), 0);
 
-        // TODO
+        // 需要接收服务端发送回来的反馈
+        bzero(read_buf, BUFSIZ);  // 这里千万忘了不要忘了清空，否则上一条是长命令，后面一条是短命令的话会导致长命令的后半段不能被清除掉
+        int len = recv(connect_fd, read_buf, BUFSIZ - 1, 0);
+        if (-1 == len) {
+            perror("recv");
+            return -1;
+        }
+        if (0 == len) {
+            std::cout << "服务器关闭了..." << std::endl;
+            break;
+        } else if (len > 0) {
+            std::cout << std::endl
+                      << read_buf;
+            // 判断得简单粗暴一点，如果是退出信息，服务端前五个字符是 "Thanks"
+            // 注意，中文字符在char数组当中一个中文字符没办法用一个字节表示，所以我们不知道中文字符占了几个字节，所以我加上了英文前缀!
+            if ("Thanks" == std::string(read_buf).substr(0, 6))
+                break;
+
+            std::cout << std::endl;
+        }
     }
 
     // 4.关闭

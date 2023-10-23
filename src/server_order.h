@@ -76,17 +76,6 @@ public:
 
 public:
     /**
-     * @brief 每次输入新的命令的时候，需要提前将命令的成员全部清空
-     */
-    void clear();
-
-    /**
-     * @brief 获得当前的命令字符串
-     * @return std::string
-     */
-    std::string get_command() const;
-
-    /**
      * @brief 设置命令字符串
      * @param  order，传入的命令字符串
      */
@@ -97,7 +86,23 @@ public:
      */
     void run();
 
+    /**
+     * @brief 得到反馈字符串
+     * @return std::string
+     */
+    std::string get_feedback() const { return m_feedback; }
+
+    /**
+     * @brief 从feedback.txt文件中读取信息并且修改本类中的m_feedback字符串信息
+     */
+    void read_feedback();
+
 private:
+    /**
+     * @brief 清空内部的变量
+     */
+    void _clear();
+
     /**
      * @brief 根据给定的命令找到对应的命令类型，在这个函数当中不考虑命令的具体合理性问题，这个交给另一个类去做，我们只是初步判断这个命令可能的类型
      * @param  command，命令字符串
@@ -239,6 +244,11 @@ private:
      * @brief 存储当前使用的数据库名称
      */
     std::string m_dbname;
+
+    /**
+     * @brief 存储处理完客户端命令之后的反馈字符串
+     */
+    std::string m_feedback;
 };
 
 #endif

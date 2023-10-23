@@ -24,8 +24,33 @@
  */
 #define Max_ipv4_len 16
 
+/**
+ * @brief 定义epoll能检测的最大max_events个数
+ */
+// 定义最大事件数max_events
+#define max_events 1000
+
+/**
+ * @brief 拿一个结构体来存储连接的客户端信息
+ */
+struct Client_Info {
+    Client_Info() { clear(); }
+
+    void clear() {
+        ip.clear();
+        port = -1;
+    }
+
+    std::string ip;
+    int port;
+};
+
 int main() {
-    // 先开单进程服务端测试一下
+    // 创建存储客户端信息的结构体
+    struct Client_Info cli_infos[max_events + 3];  // 0 1 2文件描述符被占用，从3开始，用文件描述符当作下标
+
+    // 实例化Order对象
+    Order order;
 
     // 1.创建socket套接字
     int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -86,9 +111,6 @@ int main() {
         return -1;
     }
 
-    // 定义最大事件数max_events
-    int max_events = 1000;
-
     // 开始检测
     while (1) {
         struct epoll_event ret_events[max_events] = {0};
@@ -116,6 +138,10 @@ int main() {
                 char client_ip[Max_ipv4_len] = {0};
                 inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_ip, Max_ipv4_len);
 
+                // 将客户端信息存入客户端信息数组当中，connect_fd作下标
+                cli_infos[connect_fd].ip = std::string(client_ip);
+                cli_infos[connect_fd].port = client_port;
+
                 std::cout << "client (ip: " << client_ip << " , "
                           << "port: " << client_port << ") has connected." << std::endl;
 
@@ -139,6 +165,8 @@ int main() {
             // 老客户端通信
             else {
                 int connect_fd = ret_events[i].data.fd;
+                std::string client_ip = cli_infos[connect_fd].ip;
+                unsigned short client_port = cli_infos[connect_fd].port;
 
                 // 接受客户端的命令
                 char read_buf[BUFSIZ] = {0};
@@ -158,14 +186,43 @@ int main() {
                         return -1;
                     }
 
-                    std::cout << "client (fd: " << connect_fd << ") has closed." << std::endl;
-
+                    std::cout << "client (ip: " << client_ip << " , "
+                              << "port: " << client_port << ") has closed." << std::endl;
                     // 关闭文件描述符
                     close(connect_fd);
                     break;
                 } else if (len > 0) {
-                    // TODO
-                    std::cout << "client (fd: " << connect_fd << ") send: " << read_buf << std::endl;
+                    std::cout << "client (ip: " << client_ip << " , "
+                              << "port: " << client_port << ") send: " << read_buf << std::endl;
+
+                    // 处理该命令
+                    order.set_command(std::string(read_buf));
+
+                    // 我们设计order里面的标准输出全部重定向文件当中，这样我们可以非常方便的读取m_feedback，完事之后再设置回去
+                    // 先把文件长度截断为0，然后从头开始写
+                    truncate(std::string(Order::resources_prefix + "feedback.txt").c_str(), 0);
+
+                    int fd = open(std::string(Order::resources_prefix + "feedback.txt").c_str(), O_WRONLY);
+                    if (-1 == fd) {
+                        perror("open");
+                        return -1;
+                    }
+
+                    // 重定向，保存原先标准输出的文件描述符
+                    int copy = dup(STDOUT_FILENO);
+                    dup2(fd, STDOUT_FILENO);
+
+                    order.run();
+
+                    // 重定向回去
+                    dup2(copy, STDOUT_FILENO);
+                    close(fd);
+
+                    // order读取feedback.txt中的反馈信息
+                    order.read_feedback();
+
+                    // 拿到Order类中存储的m_feedback字符串，发送回去
+                    send(connect_fd, order.get_feedback().c_str(), order.get_feedback().size(), 0);
                 }
             }
         }

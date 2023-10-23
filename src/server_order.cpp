@@ -58,23 +58,14 @@ void open_and_print(const std::string& path) {
 /**
  * @brief 对类内函数的实现
  */
-
-void Order::clear() {
-    m_command.clear();
-    m_command_type = Unknown;
-}
-
-std::string Order::get_command() const {
-    return m_command;
-}
-
 void Order::set_command(const std::string& order) {
+    // 先清空类内部的对象，因为这是一条命令处理的开始
+    _clear();
+
     m_command = order;
 }
 
 void Order::run() {
-    std::cout << std::endl;
-
     // 首先肯定是要判断命令的类型
     // _get_type确定的是一个初步的类型，就是这个命令可能是属于这一个，具体是否属于我们调用针对性的处理函数就可以了
     m_command_type = _get_type(m_command);
@@ -123,6 +114,44 @@ void Order::run() {
         _deal_unknown();
         break;
     }
+}
+
+void Order::read_feedback() {
+    // 打开文件
+    FILE* file = fopen(std::string(Order::resources_prefix + "feedback.txt").c_str(), "r");
+    if (nullptr == file) {
+        perror("fopen");
+        exit(-1);
+    }
+
+    // 读取内容
+    char read_buf[BUFSIZ] = {0};  // 数组容量用系统默认给的缓冲区大小 8192
+    while (1) {
+        bzero(read_buf, BUFSIZ);
+        size_t len = fread(read_buf, 1, BUFSIZ - 1, file);
+        // 返回0表明可能出错或者读到末尾了
+        if (0 == len) {
+            if (ferror(file)) {
+                perror("fread");
+                exit(-1);
+            }
+            if (feof(file))
+                break;
+        }
+
+        // 添加到m_feedback中
+        m_feedback += read_buf;
+    }
+
+    // 关闭
+    fclose(file);
+}
+
+void Order::_clear() {
+    m_command.clear();
+    m_command_type = Order::Unknown;
+    m_dbname.clear();
+    m_feedback.clear();
 }
 
 Order::Command_Type Order::_get_type(const std::string& command) {
@@ -233,7 +262,6 @@ void Order::_deal_tree() {
 void Order::_deal_quit() {
     // 从上面的逻辑判断，这个东西一定是对的指令
     open_and_print(resources_prefix + "menu_end.txt");
-    exit(0);
 }
 
 // clear
@@ -395,8 +423,5 @@ void Order::_deal_update() {
 }
 
 void Order::_deal_unknown() {
-    m_command_type = Command_Type::Unknown;
-    m_dbname.clear();
-
     std::cout << "您输入的命令不存在或者不正确,请检查之后重新输入!" << std::endl;
 }
