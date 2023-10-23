@@ -281,7 +281,8 @@ void Order::_deal_clear() {
             exit(-1);
         }
     } else if (0 == pid)
-        // 清空屏幕
+        // TODO
+        // 这里我没有更改逻辑，但是服务端调用的东西能让客户端清屏，我需要研究一下clear命令的实质了...
         execlp("clear", "clear", nullptr);
 }
 
