@@ -412,6 +412,7 @@ void Order::_deal_create_table() {
         return;
     // TODO
 }
+
 // drop table <table_name>
 void Order::_deal_drop_table() {
     if (!_check_if_use())
