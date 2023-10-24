@@ -112,12 +112,12 @@ private:
 
     /**
      * @brief 和上面的函数配套使用，在确定是create和drop的前提下进一步确定是database还是table
-     * @param  pos，第一个空格在原命令字符串当中的下标
+     * @param  blank_pos，第一个空格在原命令字符串当中的下标
      * @param  command，原命令字符串
      * @param  first，确认第一个参数是create还是drop，true代表是create，false代表是drop
      * @return Command_Type，命令枚举类型
      */
-    Command_Type _get_database_table(size_t pos, const std::string& command, bool first);
+    Command_Type _get_database_table(size_t blank_pos, const std::string& command, bool first);
 
     //------------------------------------------------------------
 

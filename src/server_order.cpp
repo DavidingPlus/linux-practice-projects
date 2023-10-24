@@ -168,39 +168,40 @@ Order::Command_Type Order::_get_type(const std::string& command) {
 
     // 在众多命令当中，只有create和drop是可以分为两种情况的，作用于数据库和表
     size_t pos = command.find(' ');
-    std::string sub_cmd = command.substr(0, pos);
+    std::string command_for_type = command.substr(0, pos);
 
-    // std::cout << sub_cmd << std::endl;
+    // std::cout << command_for_type << std::endl;
 
-    if ("tree" == sub_cmd)  // tree <dbname>
+    if ("tree" == command_for_type)  // tree <dbname>
         return Command_Type::Tree;
-    else if ("create" == sub_cmd)
+    else if ("create" == command_for_type)
         return _get_database_table(pos, command, true);
-    else if ("drop" == sub_cmd)
+    else if ("drop" == command_for_type)
         return _get_database_table(pos, command, false);
-    else if ("use" == sub_cmd)
+    else if ("use" == command_for_type)
         return Command_Type::Use;
-    else if ("select" == sub_cmd)
+    else if ("select" == command_for_type)
         return Command_Type::Select;
-    else if ("delete" == sub_cmd)
+    else if ("delete" == command_for_type)
         return Command_Type::Delete;
-    else if ("insert" == sub_cmd)
+    else if ("insert" == command_for_type)
         return Command_Type::Insert;
-    else if ("update" == sub_cmd)
+    else if ("update" == command_for_type)
         return Command_Type::Update;
     else
         return Command_Type::Unknown;
 }
 
-Order::Command_Type Order::_get_database_table(size_t pos, const std::string& command, bool first) {
+Order::Command_Type Order::_get_database_table(size_t blank_pos, const std::string& command, bool first) {
     // 找到第二空格确定到底是哪一个
-    std::string right_command = command.substr(pos + 1, command.size());
-    size_t pos2 = right_command.find(' ');
-    std::string sub_cmd2 = right_command.substr(0, pos2);
+    std::string right_command = command.substr(blank_pos + 1, command.size());
+    size_t pos = right_command.find(' ');
+    std::string command_for_second_type = right_command.substr(0, pos);
+
     // 进行判断
-    if ("database" == sub_cmd2)
+    if ("database" == command_for_second_type)
         return first ? Command_Type::Create_Database : Command_Type::Drop_Database;
-    else if ("table" == sub_cmd2)
+    else if ("table" == command_for_second_type)
         return first ? Command_Type::Create_Table : Command_Type::Drop_Table;
     else
         return Command_Type::Unknown;
@@ -254,7 +255,7 @@ void Order::_deal_tree() {
 
         std::cout << "数据库目录架构如下所示: " << std::endl;
         // 子进程逻辑，调用exec函数族执行tree命令
-        execlp("tree", "tree", path.c_str(), "-I", "README.md", nullptr);  // 忽略目录中引导作用的README.md
+        execlp("tree", "tree", path.c_str(), "-a", "-I", "README.md", nullptr);  // 忽略目录中引导作用的README.md
     }
 }
 
@@ -313,9 +314,8 @@ void Order::_deal_create_database() {
         }
 
     // 然后开始创建数据库，就是创建一个目录
-    // 先判断目录是否存在
     std::string path = data_prefix + command_dbname;
-    if (0 == access(path.c_str(), F_OK))
+    if (0 == access(path.c_str(), F_OK))  // 先判断目录是否存在
         std::cout << "数据库 " << command_dbname << " 已存在,请检查名称并修改!" << std::endl;
     else {
         mkdir(path.c_str(), 0755);
