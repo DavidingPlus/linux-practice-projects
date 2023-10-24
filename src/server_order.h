@@ -99,11 +99,6 @@ public:
 
 private:
     /**
-     * @brief 清空内部的变量
-     */
-    void _clear();
-
-    /**
      * @brief 根据给定的命令找到对应的命令类型，在这个函数当中不考虑命令的具体合理性问题，这个交给另一个类去做，我们只是初步判断这个命令可能的类型
      * @param  command，命令字符串
      * @return Command_Type，命令枚举类型

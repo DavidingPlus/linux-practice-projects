@@ -59,8 +59,10 @@ void open_and_print(const std::string& path) {
  * @brief 对类内函数的实现
  */
 void Order::set_command(const std::string& order) {
-    // 先清空类内部的对象，因为这是一条命令处理的开始
-    _clear();
+    // 先清空类内部的对象(m_dbname不要清空，我们要保存并且记录),因为这是一条命令处理的开始
+    m_command.clear();
+    m_command_type = Order::Unknown;
+    m_feedback.clear();
 
     m_command = order;
 }
@@ -145,13 +147,6 @@ void Order::read_feedback() {
 
     // 关闭
     fclose(file);
-}
-
-void Order::_clear() {
-    m_command.clear();
-    m_command_type = Order::Unknown;
-    m_dbname.clear();
-    m_feedback.clear();
 }
 
 Order::Command_Type Order::_get_type(const std::string& command) {
@@ -400,26 +395,57 @@ void Order::_deal_use() {
 }
 
 void Order::_deal_create_table() {
+    // 创建表必须在选定数据库的基础上
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
 void Order::_deal_drop_table() {
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
 void Order::_deal_select() {
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
 void Order::_deal_delete() {
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
 void Order::_deal_insert() {
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
 void Order::_deal_update() {
+    if (m_dbname.empty()) {
+        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
+        return;
+    }
+
     // TODO
 }
 
