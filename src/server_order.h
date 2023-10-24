@@ -174,6 +174,11 @@ private:
     void _deal_use();
 
     /**
+     * @brief 在处理表的命令之前都需要进行判断是否选中数据库
+     */
+    void _check_if_use();
+
+    /**
      * @brief 处理Create_Table类型命令
      */
     void _deal_create_table();

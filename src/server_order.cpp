@@ -394,57 +394,46 @@ void Order::_deal_use() {
     std::cout << "已切换到数据库 " << m_dbname << std::endl;
 }
 
-void Order::_deal_create_table() {
-    // 创建表必须在选定数据库的基础上
+void Order::_check_if_use() {
     if (m_dbname.empty()) {
         std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
         return;
     }
+}
+
+/*******关于表的操作都必须在选中数据库之前，所以需要先进行判断*******/
+
+void Order::_deal_create_table() {
+    _check_if_use();
 
     // TODO
 }
 
 void Order::_deal_drop_table() {
-    if (m_dbname.empty()) {
-        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
-    }
-
+    _check_if_use();
     // TODO
 }
 
 void Order::_deal_select() {
-    if (m_dbname.empty()) {
-        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
-    }
+    _check_if_use();
 
     // TODO
 }
 
 void Order::_deal_delete() {
-    if (m_dbname.empty()) {
-        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
-    }
+    _check_if_use();
 
     // TODO
 }
 
 void Order::_deal_insert() {
-    if (m_dbname.empty()) {
-        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
-    }
+    _check_if_use();
 
     // TODO
 }
 
 void Order::_deal_update() {
-    if (m_dbname.empty()) {
-        std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
-    }
+    _check_if_use();
 
     // TODO
 }
