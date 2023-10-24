@@ -151,11 +151,11 @@ void Order::read_feedback() {
 
 Order::Command_Type Order::_get_type(const std::string& command) {
     // 经过我们输入的处理之后字符串的开头肯定是有含义的字符，所以实现这个函数用于得到命令的类型
-    // 退出命令，展示命令，Tree命令查看所有，Clear命令 没有空格，我们直接在这里判断即可
-    if ("q" == command or "quit" == command)
-        return Command_Type::Quit;
+    // 退出命令，show命令，tree命令查看所有，clear命令没有空格，我们直接在这里判断即可
     if ("show" == command)
         return Command_Type::Show;
+    if ("q" == command or "quit" == command)
+        return Command_Type::Quit;
     if ("tree" == command)
         return Command_Type::Tree;
     if ("clear" == command)
@@ -412,31 +412,35 @@ void Order::_deal_create_table() {
         return;
     // TODO
 }
-
+// drop table <table_name>
 void Order::_deal_drop_table() {
     if (!_check_if_use())
         return;
     // TODO
 }
 
+// select <column> from <table> [where <cond>]
 void Order::_deal_select() {
     if (!_check_if_use())
         return;
     // TODO
 }
 
+// delete <table> [where <cond>]
 void Order::_deal_delete() {
     if (!_check_if_use())
         return;
     // TODO
 }
 
+// insert <table> values (<const-value>[, <const-value>...])
 void Order::_deal_insert() {
     if (!_check_if_use())
         return;
     // TODO
 }
 
+// update <table> set <column> = <const-value> [where <cond>]
 void Order::_deal_update() {
     if (!_check_if_use())
         return;
