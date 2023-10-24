@@ -3,7 +3,7 @@
  * @brief 客户端的主程序
  * @author lzx0626 (2065666169@qq.com)
  * @version 1.0
- * @date 2023-10-19
+ * @date 2023-10-23
  *
  * @copyright Copyright (c) 2023  电子科技大学
  *
@@ -52,7 +52,7 @@ int main(int argc, char* const argv[]) {
         return -1;
     }
 
-    std::cout << "服务器连接成功!\n"
+    std::cout << "服务器连接成功!" << std::endl
               << std::endl;
 
     // 3.开始通信
@@ -65,7 +65,7 @@ int main(int argc, char* const argv[]) {
         send(connect_fd, send_commamd.c_str(), send_commamd.size(), 0);
 
         // 需要接收服务端发送回来的反馈
-        bzero(read_buf, BUFSIZ);  // 这里千万忘了不要忘了清空，否则上一条是长命令，后面一条是短命令的话会导致长命令的后半段不能被清除掉
+        bzero(read_buf, BUFSIZ);  // 这里千万忘了不要忘了清空，否则如果上一条是长命令，后面一条是短命令的话会导致长命令的后半段不能被清除掉
         int len = recv(connect_fd, read_buf, BUFSIZ - 1, 0);
         if (-1 == len) {
             perror("recv");

@@ -20,34 +20,46 @@
 #include "server_order.h"
 
 /**
- * @brief 定义ipv4地址的char*字符串最大程度
+ * @brief 定义ipv4地址的char*字符串最大长度
  */
 #define Max_ipv4_len 16
 
 /**
- * @brief 定义epoll能检测的最大max_events个数
+ * @brief 定义epoll能检测的最大事件个数max_events
  */
-// 定义最大事件数max_events
 #define max_events 1000
 
 /**
  * @brief 拿一个结构体来存储连接的客户端信息
  */
 struct Client_Info {
+    /**
+     * @brief 构造函数，对成员进行初始化
+     */
     Client_Info() { clear(); }
 
+    /**
+     * @brief 将类内部成员清零
+     */
     void clear() {
         ip.clear();
         port = -1;
     }
 
+    /**
+     * @brief 客户端的IP
+     */
     std::string ip;
+
+    /**
+     * @brief 客户端的端口，为了让没开的端口设置为-1，我这里用的类型是-1，当然正常使用的时候会隐式转换为unsigned short，没有区别
+     */
     int port;
 };
 
 int main() {
     // 创建存储客户端信息的结构体
-    struct Client_Info cli_infos[max_events + 3];  // 0 1 2文件描述符被占用，从3开始，用文件描述符当作下标
+    struct Client_Info cli_infos[max_events + 10];  // 0 1 2文件描述符被占用，从3开始，用文件描述符当作下标，多开10个有备无患
 
     // 实例化Order对象
     Order order;
@@ -82,7 +94,7 @@ int main() {
         return -1;
     }
 
-    std::cout << "server has initialized." << std::endl;
+    std::cout << "server has successfully initialized." << std::endl;
 
     //********************从这里开始，修改成为epoll架构********************
 
@@ -146,7 +158,7 @@ int main() {
                           << "port: " << client_port << ") has connected." << std::endl;
 
                 // 设置读取非阻塞，必须设置，虽然在这个示例当中没有太大影响
-                // 但是IO多路技术是建立在非阻塞IO基础上的
+                // 但是IO多路复用技术是建立在非阻塞IO基础上的
                 int flag = fcntl(connect_fd, F_GETFD);
                 flag |= O_NONBLOCK;
                 fcntl(connect_fd, F_SETFD, flag);
@@ -199,23 +211,21 @@ int main() {
                     order.set_command(std::string(read_buf));
 
                     // 我们设计order里面的标准输出全部重定向文件当中，这样我们可以非常方便的读取m_feedback，完事之后再设置回去
-                    // 先把文件长度截断为0，然后从头开始写
-                    truncate(std::string(Order::resources_prefix + "feedback.txt").c_str(), 0);
+                    // 先把文件长度截断为0，然后从头开始写，可以下面这么做，我这里在open中加入O_TRUNC也可以
+                    // truncate(std::string(Order::resources_prefix + "feedback.txt").c_str(), 0);
 
-                    int fd = open(std::string(Order::resources_prefix + "feedback.txt").c_str(), O_WRONLY);
+                    int fd = open(std::string(Order::resources_prefix + "feedback.txt").c_str(), O_RDWR | O_TRUNC);
                     if (-1 == fd) {
                         perror("open");
                         return -1;
                     }
 
-                    // 重定向，保存原先标准输出的文件描述符
-                    int copy = dup(STDOUT_FILENO);
-                    dup2(fd, STDOUT_FILENO);
+                    int copy = dup(STDOUT_FILENO);  // 拷贝原先标准输出的文件描述符
+                    dup2(fd, STDOUT_FILENO);        // dup2的第二个参数会指向第一个参数指向的文件描述符
 
                     order.run();
 
-                    // 重定向回去
-                    dup2(copy, STDOUT_FILENO);
+                    dup2(copy, STDOUT_FILENO);  // 重定向回去
                     close(fd);
 
                     // order读取feedback.txt中的反馈信息
