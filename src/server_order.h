@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "server_table.h"
+
 /**
  * @brief 打开对应位置的文件，并且将里面的内容打印出来，定义成为extern，因为两个源文件都需要使用
  * @param  path，文件对应的目录，可能是绝对路径，也可能是相对路径
@@ -174,9 +176,11 @@ private:
     void _deal_use();
 
     /**
-     * @brief 在处理表的命令之前都需要进行判断是否选中数据库
+     * @brief  在处理表的命令的时候都需要判断是否选中数据库
+     * @return true
+     * @return false
      */
-    void _check_if_use();
+    bool _check_if_use();
 
     /**
      * @brief 处理Create_Table类型命令

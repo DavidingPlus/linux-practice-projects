@@ -162,8 +162,13 @@ Order::Command_Type Order::_get_type(const std::string& command) {
         return Command_Type::Clear;
 
     // 在众多命令当中，只有create和drop是可以分为两种情况的，作用于数据库和表
+    // 这里我要说明一下，对于错误的指令，比如create;找不到空格，这里pos就是npos，这里就会进入unknown的处理，很合理
     size_t pos = command.find(' ');
-    std::string command_for_type = command.substr(0, pos);
+    if (std::string::npos == pos)  // 一个空格都没有那肯定是不对的命令，特例都在上面判断了
+        return Command_Type::Unknown;
+
+    // std::string command_for_type = command.substr(0, pos); //substr第二个参数不是末尾的位置，而是从上一个位置开始的长度!!!所以我用构造函数了
+    std::string command_for_type = std::string(m_command.begin(), m_command.begin() + pos);
 
     // std::cout << command_for_type << std::endl;
 
@@ -189,9 +194,13 @@ Order::Command_Type Order::_get_type(const std::string& command) {
 
 Order::Command_Type Order::_get_database_table(size_t blank_pos, const std::string& command, bool first) {
     // 找到第二空格确定到底是哪一个
-    std::string right_command = command.substr(blank_pos + 1, command.size());
+    std::string right_command = std::string(m_command.begin() + blank_pos + 1, m_command.end());
     size_t pos = right_command.find(' ');
-    std::string command_for_second_type = right_command.substr(0, pos);
+    if (std::string::npos == pos)
+        return Command_Type::Unknown;
+
+    std::string command_for_second_type = std::string(right_command.begin(), right_command.begin() + pos);
+    // std::cout << command_for_second_type << std::endl;
 
     // 进行判断
     if ("database" == command_for_second_type)
@@ -217,7 +226,7 @@ void Order::_deal_tree() {
     size_t pos = m_command.find(' ');
     if (std::string::npos != pos) {
         // 查询第二个空格
-        std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+        std::string command_dbname = std::string(m_command.begin() + pos + 1, m_command.end());
         if (std::string::npos != command_dbname.find(' ')) {
             _deal_unknown();
             return;
@@ -284,17 +293,10 @@ void Order::_deal_clear() {
 
 // create database <dbname>
 void Order::_deal_create_database() {
-    // 进行更细致的判断
-    // 前面的几个字符一定是 "create database"
+    // 前面的几个字符一定是 "create database"，并且一定存在第三个参数!
     size_t pos = strlen("create database");
-    // 由于我们把末尾的空格(如果存在)给弹掉了，所以现在正确的字符串第一个字符是空格，然后后面不存在空格了
-    if (' ' != m_command[pos]) {
-        _deal_unknown();
-        return;
-    }
-
     // 现在该拿到目录的name了
-    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    std::string command_dbname = std::string(m_command.begin() + pos + 1, m_command.end());
     if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
@@ -322,12 +324,7 @@ void Order::_deal_create_database() {
 void Order::_deal_drop_database() {
     // 大体的逻辑同创建数据库一样
     size_t pos = strlen("drop database");
-    if (' ' != m_command[pos]) {
-        _deal_unknown();
-        return;
-    }
-
-    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    std::string command_dbname = std::string(m_command.begin() + pos + 1, m_command.end());
     if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
@@ -374,9 +371,15 @@ void Order::_deal_drop_database() {
 
 // use <dbname>
 void Order::_deal_use() {
+    // 同样判断是否只有use
+    if (std::string("use") == m_command) {
+        _deal_unknown();
+        return;
+    }
+
     // 已经有一个空格了，剩下的部分不能存在空格
     size_t pos = strlen("use");
-    std::string command_dbname = m_command.substr(pos + 1, m_command.size());
+    std::string command_dbname = std::string(m_command.begin() + pos + 1, m_command.end());
     if (std::string::npos != command_dbname.find(' ')) {
         _deal_unknown();
         return;
@@ -394,46 +397,51 @@ void Order::_deal_use() {
     std::cout << "已切换到数据库 " << m_dbname << std::endl;
 }
 
-void Order::_check_if_use() {
+bool Order::_check_if_use() {
     if (m_dbname.empty()) {
         std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
-        return;
+        return false;
     }
+    return true;
 }
 
 /*******关于表的操作都必须在选中数据库之前，所以需要先进行判断*******/
-
+// create table <table_name> ( <column> <type> ,...);
 void Order::_deal_create_table() {
-    _check_if_use();
-
-    // TODO
+    if (!_check_if_use())
+        return;
 }
 
 void Order::_deal_drop_table() {
-    _check_if_use();
+    if (!_check_if_use())
+        return;
     // TODO
 }
 
 void Order::_deal_select() {
-    _check_if_use();
+    if (!_check_if_use())
+        return;
 
     // TODO
 }
 
 void Order::_deal_delete() {
-    _check_if_use();
+    if (!_check_if_use())
+        return;
 
     // TODO
 }
 
 void Order::_deal_insert() {
-    _check_if_use();
+    if (!_check_if_use())
+        return;
 
     // TODO
 }
 
 void Order::_deal_update() {
-    _check_if_use();
+    if (!_check_if_use())
+        return;
 
     // TODO
 }
