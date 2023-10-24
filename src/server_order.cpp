@@ -167,9 +167,9 @@ Order::Command_Type Order::_get_type(const std::string& command) {
     if (std::string::npos == pos)  // 一个空格都没有那肯定是不对的命令，特例都在上面判断了
         return Command_Type::Unknown;
 
-    // std::string command_for_type = command.substr(0, pos); //substr第二个参数不是末尾的位置，而是从上一个位置开始的长度!!!所以我用构造函数了
+    // std::string command_for_type = command.substr(0, pos);
+    // substr第二个参数不是末尾的位置，而是从上一个位置开始的长度!!!所以我用构造函数了
     std::string command_for_type = std::string(m_command.begin(), m_command.begin() + pos);
-
     // std::cout << command_for_type << std::endl;
 
     if ("tree" == command_for_type)  // tree <dbname>
@@ -410,6 +410,7 @@ bool Order::_check_if_use() {
 void Order::_deal_create_table() {
     if (!_check_if_use())
         return;
+    // TODO
 }
 
 void Order::_deal_drop_table() {
@@ -421,28 +422,24 @@ void Order::_deal_drop_table() {
 void Order::_deal_select() {
     if (!_check_if_use())
         return;
-
     // TODO
 }
 
 void Order::_deal_delete() {
     if (!_check_if_use())
         return;
-
     // TODO
 }
 
 void Order::_deal_insert() {
     if (!_check_if_use())
         return;
-
     // TODO
 }
 
 void Order::_deal_update() {
     if (!_check_if_use())
         return;
-
     // TODO
 }
 
