@@ -23,7 +23,7 @@ static const string prefix_path = "../copy/";
 
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
-    if (argc < 3) {
+    if (argc < 2) {
         printf("usage: %s <ip>\n", argv[0]);
         return -1;
     }
