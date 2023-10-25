@@ -36,15 +36,15 @@ static string server_ip;
 static in_port_t server_port;
 
 int main(int argc, char const* argv[]) {
-    if (argc < 3) {
-        printf("usage: %s <ip_address> <port>\n", argv[0]);
+    if (argc < 2) {
+        printf("usage: %s <ip_address>\n", argv[0]);
         return -1;
     }
 
     // 全局存储服务端的IP地址
     server_ip = argv[1];
-    // 全局存储端口
-    server_port = atoi(argv[2]);
+    // 全局，我给定端口号为8080
+    server_port = 8080;
 
     // 先尝试连接到服务端
     // 1.创建套接字
