@@ -24,12 +24,12 @@ static const string prefix_path = "../copy/";
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
     if (argc < 3) {
-        printf("usage: %s <ip> <port>\n", argv[0]);
+        printf("usage: %s <ip>\n", argv[0]);
         return -1;
     }
 
     string server_ip = string(argv[1]);
-    unsigned short server_port = atoi(argv[2]);
+    unsigned short server_port = 8080;
 
     // 1.创建socket套接字
     int connect_fd = socket(AF_INET, SOCK_STREAM, 0);
