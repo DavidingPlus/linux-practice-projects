@@ -53,8 +53,8 @@ int main() {
     server_addr.sin_family = AF_INET;
     // IP地址
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    // 端口，我给定9999
-    server_addr.sin_port = htons(9999);
+    // 端口，我给定8080
+    server_addr.sin_port = htons(8080);
 
     int ret = bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     if (-1 == ret) {
