@@ -19,13 +19,13 @@
 
 int main(int argc, char* const argv[]) {
     // 判断命令行参数
-    if (argc < 3) {
-        std::cout << "usage: " << argv[0] << " <ip> <address>" << std::endl;
+    if (argc < 2) {
+        std::cout << "usage: " << argv[0] << " <ip>" << std::endl;
         return -1;
     }
 
     std::string server_ip = std::string(argv[1]);
-    unsigned short server_port = atoi(argv[2]);
+    unsigned short server_port = 9999;  // 我这边指定端口为9999
 
     // 实例化菜单对象
     Menu menu;
