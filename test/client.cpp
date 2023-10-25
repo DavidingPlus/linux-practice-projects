@@ -25,7 +25,7 @@ int main(int argc, char* const argv[]) {
     }
 
     std::string server_ip = std::string(argv[1]);
-    unsigned short server_port = 9999;  // 我这边指定端口为9999
+    unsigned short server_port = 8080;  // 我这边指定端口为8080
 
     // 实例化菜单对象
     Menu menu;
