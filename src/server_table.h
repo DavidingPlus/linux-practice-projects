@@ -26,6 +26,12 @@ struct Column {
     Column() = default;
 
     /**
+     * @brief 构造函数
+     */
+    Column(const std::string& column_type, const std::string& column_name)
+        : m_column_type(column_type), m_column_name(column_name) {}
+
+    /**
      * @brief 默认析构函数
      */
     ~Column() = default;

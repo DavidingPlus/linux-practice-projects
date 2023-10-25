@@ -17,9 +17,9 @@
     use <dbname>; (切换数据库)
 
     create table <table-name> (
-        <column> <type> [primary],
+        <column> <type>,
         ...
-    ); (创建表)
+    ); (创建表，目前只考虑 int 和 string 类型，注意最后一列没有 ',' !)
 
     drop table <table-name>; (删除表)
 

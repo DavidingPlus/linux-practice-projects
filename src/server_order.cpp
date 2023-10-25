@@ -22,40 +22,6 @@ const std::string Order::data_prefix = "../data/";
 const std::string Order::resources_prefix = "../resources/";
 
 /**
- * @brief 实现extern类别函数open_and_print
- */
-void open_and_print(const std::string& path) {
-    // 打开文件
-    FILE* file = fopen(path.c_str(), "r");
-    if (nullptr == file) {
-        perror("fopen");
-        exit(-1);
-    }
-
-    // 读取内容
-    char read_buf[BUFSIZ] = {0};  // 数组容量用系统默认给的缓冲区大小 8192
-    while (1) {
-        bzero(read_buf, BUFSIZ);
-        size_t len = fread(read_buf, 1, BUFSIZ - 1, file);
-        // 返回0表明可能出错或者读到末尾了
-        if (0 == len) {
-            if (ferror(file)) {
-                perror("fread");
-                exit(-1);
-            }
-            if (feof(file))
-                break;
-        }
-
-        // 打印到屏幕上
-        fwrite(read_buf, 1, len, stdout);
-    }
-
-    // 关闭
-    fclose(file);
-}
-
-/**
  * @brief 对类内函数的实现
  */
 void Order::set_command(const std::string& order) {
@@ -304,11 +270,10 @@ void Order::_deal_create_database() {
 
     // 我想要把数据库创建在data目录中，需要做特殊字符的判断
     // 不能出现 \ / : * ? " < > |
-    for (auto& ch : banned_ch)
-        if (std::string::npos != command_dbname.find(ch)) {
-            std::cout << "数据库命名当中带有非法字符 '" << ch << "' ,请重新输入!" << std::endl;
-            return;
-        }
+    if (check_has_any(command_dbname, banned_ch)) {
+        std::cout << "数据库命名 \"" << command_dbname << "\" 当中带有非法字符,请重新输入!" << std::endl;
+        return;
+    }
 
     // 然后开始创建数据库，就是创建一个目录
     std::string path = data_prefix + command_dbname;
@@ -371,12 +336,6 @@ void Order::_deal_drop_database() {
 
 // use <dbname>
 void Order::_deal_use() {
-    // 同样判断是否只有use
-    if (std::string("use") == m_command) {
-        _deal_unknown();
-        return;
-    }
-
     // 已经有一个空格了，剩下的部分不能存在空格
     size_t pos = strlen("use");
     std::string command_dbname = std::string(m_command.begin() + pos + 1, m_command.end());
@@ -397,6 +356,7 @@ void Order::_deal_use() {
     std::cout << "已切换到数据库 " << m_dbname << std::endl;
 }
 
+/*******关于表的操作都必须在选中数据库之前，所以需要先进行判断*******/
 bool Order::_check_if_use() {
     if (m_dbname.empty()) {
         std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
@@ -405,12 +365,115 @@ bool Order::_check_if_use() {
     return true;
 }
 
-/*******关于表的操作都必须在选中数据库之前，所以需要先进行判断*******/
 // create table <table_name> ( <column> <type> ,...);
 void Order::_deal_create_table() {
+    // 进来就检测是否选中数据库
     if (!_check_if_use())
         return;
+
+    // 实例化Table对象
+    Table table;
+
+    size_t pos = strlen("create table");
+    // "create table"的错误命令在上面判断过了，这里不判断
+    // 查询 '(' 和 ')'
+    size_t pos_left = m_command.find('(');
+    if (std::string::npos == pos_left) {
+        _deal_unknown();
+        return;
+    }
+    size_t pos_right = m_command.find(')');
+    if (std::string::npos == pos_right) {
+        _deal_unknown();
+        return;
+    }
+
+    // 如果 ')' 后面出现其他字符则命令不正确
+    if (')' != m_command.back()) {
+        _deal_unknown();
+        return;
+    }
+
+    // 处理table_name
+    if (pos + 1 == pos_left) {  // 到这一步table后面一定带有一个空格了，否则就是unknown命令
+        _deal_unknown();
+        return;
+    }
+
+    std::string table_name = std::string(m_command.begin() + pos + 1, m_command.begin() + pos_left);
+    // 如果<table_name>和 '(' 中间有一个空格，我们把它弹掉
+    if (' ' == m_command[pos_left - 1])
+        table_name.pop_back();
+    // 如果末尾的空格都被弹掉之后，table_name中还有空格则命令不对
+    if (std::string::npos != table_name.find(' ')) {
+        _deal_unknown();
+        return;
+    }
+
+    // 检测表名是否符合命名规范
+    // 不能出现 \ / : * ? " < > |
+    if (check_has_any(table_name, banned_ch)) {
+        std::cout << "表命名 \"" << table_name << "\" 当中带有非法字符,请重新输入!" << std::endl;
+        return;
+    }
+
+    table.m_table_name = table_name;
+    // std::cout << '(' << table_name << ')' << std::endl;
+
+    // 判断表是否已经存在
+    std::string path = Order::data_prefix + m_dbname + '/' + table_name + ".dat";
+    if (0 == access(path.c_str(), F_OK)) {
+        std::cout << "表 " << table.m_table_name << " 已存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    // 处理column_name和column_type
+    std::string column_string = std::string(m_command.begin() + pos_left + 1, m_command.begin() + pos_right);
+    // 在处理之前，我们把收尾的空格弹掉(如果存在)，方便判断最后一个列是否具有 ','
+    pop_blank(column_string);
+
+    // 判断 ','
+    if (',' == column_string.back()) {
+        std::cout << "最后一列末尾不需要 ',' !请检查之后重试!" << std::endl;
+        return;
+    }
+
+    // 现在按 ',' 进行分割
+    auto type_name_s = my_spilt(column_string, ',');
+    for (auto& row : type_name_s) {
+        // 处理每一行
+        // 先把首尾的空格弹掉
+        pop_blank(row);
+        // std::cout << '(' << row << ')' << std::endl;
+
+        // 现在的数据只可能是 "<column> <type>"，也就是只有一个空格
+        std::vector<std::string> type_name = my_spilt(row, ' ');
+        if (2 != type_name.size()) {
+            _deal_unknown();
+            return;
+        }
+
+        // 检查名称
+        if (check_has_any(type_name[0], banned_ch)) {
+            std::cout << "字段名称 \"" << type_name[0] << "\" 当中含有非法字符,请重新输入!" << std::endl;
+            return;
+        }
+        // 检查类型，目前只考虑是int或者string
+        if ("int" != type_name[1] and "string" != type_name[1]) {
+            std::cout << "字段类型 \"" << type_name[1] << "\" 不符合规范,请重新输入" << std::endl;
+            return;
+        }
+        // 存储
+        table.m_columns.push_back({type_name[0], type_name[1]});
+    }
+
+    // 存储到文件中，path在前面已经定义
+    // Table结构体里面使用了vector，导致大小不确定，如果直接写入结构体，在读取的时候新的Table不知道大小是多少，会段错误
+    // 因此在写入的时候我需要执行相关的规则才能保证正确的写入
     // TODO
+
+    // 输出反馈
+    std::cout << "表 " << table.m_table_name << " 创建成功!" << std::endl;
 }
 
 // drop table <table_name>

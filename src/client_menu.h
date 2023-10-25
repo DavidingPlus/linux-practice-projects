@@ -9,11 +9,9 @@
  *
  */
 
-#ifndef _MENU_H_
-#define _MENU_H_
+#ifndef _CLIENT_MENU_H_
+#define _CLIENT_MENU_H_
 
-#include <cstring>
-#include <exception>
 #include <iostream>
 #include <string>
 

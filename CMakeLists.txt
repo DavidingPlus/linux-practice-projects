@@ -16,12 +16,14 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(client
     src/client_menu.cpp
     src/server_order.cpp
+    src/tools.cpp
     test/client.cpp
 )
 
 add_executable(server
     src/client_menu.cpp
     src/server_order.cpp
+    src/tools.cpp
     test/server.cpp
 )
 

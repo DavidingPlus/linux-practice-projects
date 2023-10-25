@@ -9,26 +9,20 @@
  *
  */
 
-#ifndef _ORDER_H_
-#define _ORDER_H_
+#ifndef _SERVER_ORDER_H_
+#define _SERVER_ORDER_H_
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <unistd.h>
 
-#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "server_table.h"
-
-/**
- * @brief 打开对应位置的文件，并且将里面的内容打印出来，定义成为extern，因为两个源文件都需要使用
- * @param  path，文件对应的目录，可能是绝对路径，也可能是相对路径
- */
-extern void open_and_print(const std::string& path);
+#include "tools.h"
 
 class Order {
 public:
