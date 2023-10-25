@@ -58,7 +58,7 @@ int main() {
     // IP
     server_addr.sin_addr.s_addr = INADDR_ANY;
     // 端口
-    server_addr.sin_port = htons(9999);
+    server_addr.sin_port = htons(8080);
 
     ret = bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     if (-1 == ret) {
