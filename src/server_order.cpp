@@ -560,6 +560,11 @@ void Order::_deal_select() {
             // 去掉多余的空格
             pop_space(column);
             // std::cout << '(' << column << ')' << std::endl;
+            // 如果逗号之间的<column>中间还含有空格，命令肯定不对
+            if (std::string::npos != column.find(' ')) {
+                _deal_unknown();
+                return;
+            }
         }
     }
 
@@ -570,6 +575,8 @@ void Order::_deal_select() {
     // 如果没有where，那么不允许出现空格
     size_t pos_where = command_tablename_where.find("where");
     // where不存在
+    std::vector<std::string> name_val;  // 在这里提前定义where后面的语句
+
     if (std::string::npos == pos_where) {
         if (std::string::npos != command_tablename_where.find(' ')) {
             _deal_unknown();
@@ -577,13 +584,31 @@ void Order::_deal_select() {
         }
         // 拿到table_name
         table_name = command_tablename_where;
-    } else {
+    }
+    // 存在
+    else {
         // where存在，前面必须存在空格
         if (' ' != command_tablename_where[pos_where - 1]) {
             _deal_unknown();
             return;
         }
+        // 后面也必须存在
+        if (pos_where + 5 == command_tablename_where.size() or ' ' != command_tablename_where[pos_where + 5]) {
+            _deal_unknown();
+            return;
+        }
         table_name = std::string(command_tablename_where.begin(), command_tablename_where.begin() + pos_where - 1);
+
+        // where正确了，获取where后面的命令
+        std::string command_after_where = std::string(command_tablename_where.begin() + pos_where + 5 + 1, command_tablename_where.end());
+        if (std::string::npos == command_after_where.find('=') or std::string::npos != command_after_where.find("==")) {  // 我怕输入 == ，这里还是判断一下
+            std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        name_val = my_spilt(command_after_where, '=');
+        for (auto& each : name_val)
+            pop_space(each);
     }
 
     // 判断表文件是否存在
@@ -599,15 +624,45 @@ void Order::_deal_select() {
     std::cout << "表 " << table.m_table_name << " 查询结果如下: " << std::endl;
 
     // 显示字段名称
-    for (auto& column : table.m_columns) {
+    // 在检测字段的时候就存储一个bool数组记录哪些列是需要显示的
+    bool is_show[table.m_columns.size()] = {0};
+
+    int where_point = -1;  // 定义where条件是判断哪一列
+    for (int i = 0; i < table.m_columns.size(); ++i) {
         if (show_columns.empty() or
-            show_columns.end() != std::find(show_columns.begin(), show_columns.end(), column.m_column_name))
-            std::cout << column.m_column_name << ' ';
+            show_columns.end() != std::find(show_columns.begin(), show_columns.end(), table.m_columns[i].m_column_name)) {
+            std::cout << table.m_columns[i].m_column_name << ' ';
+
+            is_show[i] = true;
+            if (std::string::npos != pos_where and name_val[0] == table.m_columns[i].m_column_name)
+                where_point = i;
+        }
     }
     std::cout << std::endl;  // 这里需要换行刷新缓冲区，否则等命令结束后外面把标准输出重定向回去就输出到终端了
 
     // 显示数据
-    // TODO
+    for (auto& row : table.m_data) {
+        bool flag = false;
+        for (int i = 0; i < table.m_columns.size(); ++i) {
+            // 没有where
+            if (std::string::npos == pos_where) {
+                flag = true;
+                if (is_show[i])
+                    std::cout << row[i] << ' ';
+            }
+            // 有where
+            else {
+                // 先满足规则条件才能进行后面的输出
+                if (name_val[1] == row[where_point]) {
+                    flag = true;
+                    if (is_show[i])
+                        std::cout << row[i] << ' ';
+                }
+            }
+        }
+        if (flag)
+            std::cout << std::endl;
+    }
 }
 
 // 后面几个实现我准备按照某些规则把字符串进行切割，然后进行判断，这样看会不会方便点
