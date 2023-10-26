@@ -6,7 +6,10 @@ set (CMAKE_CXX_COMPILER "/usr/bin/g++-13")
 
 project(MyProject)
 
-#设置CMake_Build_Type
+# 添加内存消毒器，为了规范我们的代码
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+
+# 设置CMake_Build_Type
 set(CMAKE_BUILD_TYPE Debug)
 
 # 设置 C++ 标准
