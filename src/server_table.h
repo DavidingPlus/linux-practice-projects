@@ -28,8 +28,8 @@ struct Column {
     /**
      * @brief 构造函数
      */
-    Column(const std::string& column_type, const std::string& column_name)
-        : m_column_type(column_type), m_column_name(column_name) {}
+    Column(const std::string& column_name, const std::string& column_type)
+        : m_column_name(column_name), m_column_type(column_type) {}
 
     /**
      * @brief 默认析构函数
@@ -37,14 +37,14 @@ struct Column {
     ~Column() = default;
 
     /**
-     * @brief 字段的类型
-     */
-    std::string m_column_type;
-
-    /**
      * @brief 字段的命名
      */
     std::string m_column_name;
+
+    /**
+     * @brief 字段的类型
+     */
+    std::string m_column_type;
 };
 
 /**

@@ -357,6 +357,7 @@ void Order::_deal_use() {
 }
 
 /*******关于表的操作都必须在选中数据库之前，所以需要先进行判断*******/
+
 bool Order::_check_if_use() {
     if (m_dbname.empty()) {
         std::cout << "未选择任何数据库!请选择合适数据库之后重试!" << std::endl;
@@ -470,7 +471,7 @@ void Order::_deal_create_table() {
     // 存储到文件中，path在前面已经定义
     // Table结构体里面使用了vector，导致大小不确定，如果直接写入结构体，在读取的时候新的Table不知道大小是多少，会段错误
     // 因此在写入的时候我需要执行相关的规则才能保证正确的写入
-    // TODO
+    write_table_to_file(table, path);
 
     // 输出反馈
     std::cout << "表 " << table.m_table_name << " 创建成功!" << std::endl;
@@ -480,7 +481,30 @@ void Order::_deal_create_table() {
 void Order::_deal_drop_table() {
     if (!_check_if_use())
         return;
-    // TODO
+
+    // 大体的逻辑同删除数据库一样
+    size_t pos = strlen("drop table");
+    std::string command_table_name = std::string(m_command.begin() + pos + 1, m_command.end());
+    if (std::string::npos != command_table_name.find(' ')) {
+        _deal_unknown();
+        return;
+    }
+
+    // 得到表名字，先看存不存在
+    std::string path = data_prefix + m_dbname + "/" + command_table_name + ".dat";
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "表 " << command_table_name << " 不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    // 删除文件
+    int ret = unlink(path.c_str());
+    if (-1 == ret) {
+        perror("unlink");
+        exit(-1);
+    }
+
+    std::cout << "表 " << command_table_name << " 删除成功!" << std::endl;
 }
 
 // select <column> from <table> [where <cond>]
