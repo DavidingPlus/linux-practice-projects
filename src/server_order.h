@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>

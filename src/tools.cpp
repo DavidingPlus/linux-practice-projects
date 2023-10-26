@@ -68,7 +68,7 @@ std::vector<std::string> my_spilt(const std::string& str, const char& ch) {
     return ret;
 }
 
-void pop_blank(std::string& str) {
+void pop_space(std::string& str) {
     if (' ' == str.front())
         str.erase(str.begin());
     if (' ' == str.back())
@@ -160,7 +160,7 @@ Table read_table_from_file(const std::string& path) {
     }
 
     // 读取数据
-    while (0 == feof(file)) {
+    while (!feof(file)) {
         size_t row_size;
         if (fread(&row_size, sizeof(size_t), 1, file) != 1)
             break;

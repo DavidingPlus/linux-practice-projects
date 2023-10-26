@@ -37,7 +37,7 @@ std::vector<std::string> my_spilt(const std::string& str, const char& ch);
  * @brief 弹掉字符串首尾的空格(如果存在)
  * @param  str，需要检测的字符串对象
  */
-void pop_blank(std::string& str);
+void pop_space(std::string& str);
 
 /**
  * @brief 检测字符串中是否包含传入的各种字符

@@ -367,6 +367,7 @@ bool Order::_check_if_use() {
 }
 
 // create table <table_name> ( <column> <type> ,...);
+// 写好的屎山，就不要动它了...
 void Order::_deal_create_table() {
     // 进来就检测是否选中数据库
     if (!_check_if_use())
@@ -431,7 +432,7 @@ void Order::_deal_create_table() {
     // 处理column_name和column_type
     std::string column_string = std::string(m_command.begin() + pos_left + 1, m_command.begin() + pos_right);
     // 在处理之前，我们把收尾的空格弹掉(如果存在)，方便判断最后一个列是否具有 ','
-    pop_blank(column_string);
+    pop_space(column_string);
 
     // 判断 ','
     if (',' == column_string.back()) {
@@ -444,7 +445,7 @@ void Order::_deal_create_table() {
     for (auto& row : type_name_s) {
         // 处理每一行
         // 先把首尾的空格弹掉
-        pop_blank(row);
+        pop_space(row);
         // std::cout << '(' << row << ')' << std::endl;
 
         // 现在的数据只可能是 "<column> <type>"，也就是只有一个空格
@@ -508,6 +509,7 @@ void Order::_deal_drop_table() {
 }
 
 // select <column> from <table> [where <cond>]
+// 写好的屎山，就不要动它了...
 void Order::_deal_select() {
     if (!_check_if_use())
         return;
@@ -556,11 +558,7 @@ void Order::_deal_select() {
         show_columns = my_spilt(command_columns, ',');
         for (auto& column : show_columns) {
             // 去掉多余的空格
-            if (' ' == column.front())
-                column.erase(column.begin());
-            if (' ' == column.back())
-                column.pop_back();
-
+            pop_space(column);
             // std::cout << '(' << column << ')' << std::endl;
         }
     }
@@ -598,18 +596,21 @@ void Order::_deal_select() {
     // 这时候读入table对象，因为要比对了
     table = read_table_from_file(path);
 
-    // 开始显示，先不考虑where
-    // TODO
-    if (std::string::npos == pos_where) {
-        if (show_columns.empty()) {
-            // 展示所有
+    std::cout << "表 " << table.m_table_name << " 查询结果如下: " << std::endl;
 
-        } else {
-        }
-    } else {
+    // 显示字段名称
+    for (auto& column : table.m_columns) {
+        if (show_columns.empty() or
+            show_columns.end() != std::find(show_columns.begin(), show_columns.end(), column.m_column_name))
+            std::cout << column.m_column_name << ' ';
     }
+    std::cout << std::endl;  // 这里需要换行刷新缓冲区，否则等命令结束后外面把标准输出重定向回去就输出到终端了
+
+    // 显示数据
+    // TODO
 }
 
+// 后面几个实现我准备按照某些规则把字符串进行切割，然后进行判断，这样看会不会方便点
 // delete <table> [where <cond>]
 void Order::_deal_delete() {
     if (!_check_if_use())
