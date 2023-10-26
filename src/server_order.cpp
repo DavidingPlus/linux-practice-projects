@@ -511,7 +511,103 @@ void Order::_deal_drop_table() {
 void Order::_deal_select() {
     if (!_check_if_use())
         return;
+
+    // 实例化Table对象
+    Table table;
+
+    size_t pos = strlen("select");
+    size_t pos_from = m_command.find("from");
+    if (std::string::npos == pos_from) {
+        _deal_unknown();
+        return;
+    }
+    // 判断这两个中间是否为空
+    if (pos + 1 == pos_from) {
+        std::cout << "未选择任何列,请检查之后重新输入!" << std::endl;
+        return;
+    }
+
+    // 拿出需要查找的列
+    std::string command_columns = std::string(m_command.begin() + pos + 1, m_command.begin() + pos_from);
+    // 这里必须有一个空格，否则<column>就和from连在一起了，不合适
+    if (' ' != command_columns.back()) {
+        _deal_unknown();
+        return;
+    }
+    // 同理，from后面也要有一个空格，这就有两种错误情况，一是from后面没东西了，二是有东西但是粘在一起了
+    if (pos_from + 4 == m_command.size() or ' ' != m_command[pos_from + 4]) {
+        _deal_unknown();
+        return;
+    }
+
+    // 弹掉空格
+    command_columns.pop_back();
+
+    // 我们仍不允许末尾出现 ','
+    if (',' == command_columns.back()) {
+        std::cout << "<column>末尾不需要 ','!请检查之后重试!" << std::endl;
+        return;
+    }
+
+    // 拿到正确的<column>之后，进行处理
+    std::vector<std::string> show_columns;
+    // 为*表示全部展示，show_column为空
+    if ("*" != command_columns) {
+        show_columns = my_spilt(command_columns, ',');
+        for (auto& column : show_columns) {
+            // 去掉多余的空格
+            if (' ' == column.front())
+                column.erase(column.begin());
+            if (' ' == column.back())
+                column.pop_back();
+
+            // std::cout << '(' << column << ')' << std::endl;
+        }
+    }
+
+    // 然后读取表
+    std::string command_tablename_where = std::string(m_command.begin() + pos_from + 4 + 1, m_command.end());
+    std::string table_name;
+
+    // 如果没有where，那么不允许出现空格
+    size_t pos_where = command_tablename_where.find("where");
+    // where不存在
+    if (std::string::npos == pos_where) {
+        if (std::string::npos != command_tablename_where.find(' ')) {
+            _deal_unknown();
+            return;
+        }
+        // 拿到table_name
+        table_name = command_tablename_where;
+    } else {
+        // where存在，前面必须存在空格
+        if (' ' != command_tablename_where[pos_where - 1]) {
+            _deal_unknown();
+            return;
+        }
+        table_name = std::string(command_tablename_where.begin(), command_tablename_where.begin() + pos_where - 1);
+    }
+
+    // 判断表文件是否存在
+    std::string path = Order::data_prefix + m_dbname + '/' + table_name + ".dat";
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "表 " << table_name << " 不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    // 这时候读入table对象，因为要比对了
+    table = read_table_from_file(path);
+
+    // 开始显示，先不考虑where
     // TODO
+    if (std::string::npos == pos_where) {
+        if (show_columns.empty()) {
+            // 展示所有
+
+        } else {
+        }
+    } else {
+    }
 }
 
 // delete <table> [where <cond>]
