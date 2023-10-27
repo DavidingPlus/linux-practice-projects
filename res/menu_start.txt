@@ -20,7 +20,7 @@
     create table <table-name> (
         <column> <type>,
         ...
-    ); (创建表，目前只考虑 int 和 string 类型，注意最后一列没有 ',' !)
+    ); (创建表，目前只考虑 int 和 string 类型，注意最后一列没有 ',' )
 
     drop table <table-name>; (删除表)
 
@@ -28,7 +28,7 @@
 
     delete <table> [where <cond>]; (根据条件(如果有)删除表中的记录)
 
-    insert <table> values (<const-value>, <const-value>,...); (在表中插入数据)
+    insert <table> values (<const-value>, <const-value>,...); (在表中插入数据，注意最后一个的右边也没有 ',')
 
     update <table> set <column> = <const-value> [where <cond>]; (根据条件(如果有)更新表中的记录。如无条件，则更新整张表)
 
