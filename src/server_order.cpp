@@ -638,7 +638,7 @@ void Order::_deal_select() {
     // 在检测字段的时候就存储一个bool数组记录哪些列是需要显示的
     bool is_show[table.m_columns.size()] = {0};
 
-    int where_point = -1;  // 定义where条件是判断哪一列
+    int where_index = -1;  // 定义where条件是判断哪一列
     for (int i = 0; i < table.m_columns.size(); ++i) {
         if (show_columns.empty() or
             show_columns.end() != std::find(show_columns.begin(), show_columns.end(), table.m_columns[i].m_column_name)) {
@@ -646,7 +646,7 @@ void Order::_deal_select() {
 
             is_show[i] = true;
             if (std::string::npos != pos_where and name_val[0] == table.m_columns[i].m_column_name)
-                where_point = i;
+                where_index = i;
         }
     }
     std::cout << std::endl;  // 这里需要换行刷新缓冲区，否则等命令结束后外面把标准输出重定向回去就输出到终端了
@@ -665,7 +665,7 @@ void Order::_deal_select() {
             // 有where
             else {
                 // 先满足规则条件才能进行后面的输出
-                if (-1 != where_point and name_val[1] == row[where_point]) {
+                if (-1 != where_index and name_val[1] == row[where_index]) {
                     flag = true;
                     if (is_show[i])
                         std::cout << row[i] << ' ';
@@ -716,6 +716,9 @@ void Order::_deal_delete() {
     table = Tools::read_table_from_file(path);
 
     // 开始delete
+    bool flag_del = true;  // 定义后面判断是否准确删除数据的一个标志
+    std::string command_after_where;
+
     if (std::string::npos == pos_where)
         table.m_data.clear();
     else {
@@ -725,7 +728,7 @@ void Order::_deal_delete() {
             return;
         }
         // 和前面那个where处理类似
-        std::string command_after_where = std::string(m_command.begin() + pos_where + 5 + 1, m_command.end());
+        command_after_where = std::string(m_command.begin() + pos_where + 5 + 1, m_command.end());
         if (std::string::npos == command_after_where.find('=') or std::string::npos != command_after_where.find("==")) {  // 我怕输入 == ，这里还是判断一下
             std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
             return;
@@ -747,35 +750,33 @@ void Order::_deal_delete() {
         }
 
         // 搜寻字段
-        int where_point = -1;  // 定义where条件是判断哪一列
+        int where_index = -1;  // 定义where条件是判断哪一列
         for (int i = 0; i < table.m_columns.size(); ++i)
             if (name_val[0] == table.m_columns[i].m_column_name)
-                where_point = i;
+                where_index = i;
 
         // 删除对应数据
-        if (-1 != where_point) {
+        if (-1 != where_index) {
             bool flag = false;
             for (int i = 0; i < table.m_data.size(); ++i)
-                if (name_val[1] == table.m_data[i][where_point]) {
+                if (name_val[1] == table.m_data[i][where_index]) {
                     flag = true;
                     table.m_data.erase(table.m_data.begin() + i);
                     --i;  // 删除之后所有人的下标前移，需要同步变化
                 }
 
-            if (!flag) {  // 啥都没删掉
-                Tools::write_table_to_file(table, path);
-                std::cout << "您输入的where条件 " << command_after_where << " 似乎不准确,什么也没删掉..." << std::endl;
-                return;
-            }
-        } else {  // 啥都没删掉
-            Tools::write_table_to_file(table, path);
-            std::cout << "您输入的where条件 " << command_after_where << " 似乎不准确,什么也没删掉..." << std::endl;
-            return;
-        }
+            if (!flag)  // 啥都没删掉
+                flag_del = false;
+        } else  // 啥都没删掉
+            flag_del = false;
     }
     // 写回去
     Tools::write_table_to_file(table, path);
-    std::cout << "您指定的数据已经成功删除!" << std::endl;
+
+    if (flag_del)
+        std::cout << "您指定的数据已经成功删除!" << std::endl;
+    else
+        std::cout << "您输入的where条件 " << command_after_where << " 似乎不准确,什么也没删掉..." << std::endl;
 }
 
 // insert <table> values (<const-value>, <const-value>, ...)
@@ -902,12 +903,12 @@ void Order::_deal_update() {
 
     std::string command_after_set = std::string(m_command.begin() + pos_set + 3 + 1, m_command.end());
     // 现在来处理后面的一坨答辩
-    // command_value是需要给某列设置的值,command_where就是列的条件
-    std::string command_value, command_where;
+    // command_set_value是需要给某列设置的值,command_where就是列的条件
+    std::string command_set_value, command_where;
     size_t pos_where = command_after_set.find("where");
     if (std::string::npos != pos_where) {
-        command_value = std::string(command_after_set.begin(), command_after_set.begin() + pos_where);
-        if (command_value.empty()) {
+        command_set_value = std::string(command_after_set.begin(), command_after_set.begin() + pos_where);
+        if (command_set_value.empty()) {
             _deal_unknown();
             return;
         }
@@ -920,10 +921,99 @@ void Order::_deal_update() {
         command_where = std::string(command_after_set.begin() + pos_where + 5 + 1, command_after_set.end());
 
     } else
-        command_value = command_after_set;
+        command_set_value = command_after_set;
 
-    std::cout << '(' << command_value << ')' << std::endl;
-    std::cout << '(' << command_where << ')' << std::endl;
+    // 处理value的设置的值，复用前面的代码
+    // -----------------------
+    if (std::string::npos == command_set_value.find('=') or std::string::npos != command_set_value.find("==")) {  // 我怕输入 == ，这里还是判断一下
+        std::cout << "您输入的set条件 " << command_set_value << " 不正确,请检查之后重新输入" << std::endl;
+        return;
+    }
+
+    std::vector<std::string> name_val_set_value = Tools::my_spilt(command_set_value, '=');
+    if (2 != name_val_set_value.size()) {
+        std::cout << "您输入的set条件 " << command_set_value << " 不正确,请检查之后重新输入" << std::endl;
+        return;
+    }
+
+    for (auto& each : name_val_set_value) {
+        Tools::pop_space(each);
+        // 去除头尾后如果还有空格就不对
+        if (std::string::npos != each.find(' ')) {
+            std::cout << "您输入的set条件 " << command_set_value << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+    }
+    // -----------------------
+
+    // 处理where的条件
+    // -----------------------
+    std::vector<std::string> name_val_where;
+
+    if (std::string::npos != pos_where) {
+        if (std::string::npos == command_where.find('=') or std::string::npos != command_where.find("==")) {  // 我怕输入 == ，这里还是判断一下
+            std::cout << "您输入的where条件 " << command_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        name_val_where = Tools::my_spilt(command_where, '=');
+        if (2 != name_val_where.size()) {
+            std::cout << "您输入的where条件 " << command_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        for (auto& each : name_val_where) {
+            Tools::pop_space(each);
+            // 去除头尾后如果还有空格就不对
+            if (std::string::npos != each.find(' ')) {
+                std::cout << "您输入的where条件 " << command_where << " 不正确,请检查之后重新输入" << std::endl;
+                return;
+            }
+        }
+    }
+    // -----------------------
+
+    // 读文件
+    table = Tools::read_table_from_file(path);
+
+    // 拿到之后就可以开始查询了并且修改了
+    int set_index = -1;  // 定义set条件是判断哪一列
+    for (int i = 0; i < table.m_columns.size(); ++i) {
+        if (name_val_set_value[0] == table.m_columns[i].m_column_name)
+            set_index = i;
+    }
+    if (-1 == set_index) {
+        std::cout << "您输入的set条件 " << command_set_value << " 似乎不准确,什么也没修改..." << std::endl;
+        return;
+    }
+
+    // 如果没有where
+    if (std::string::npos == pos_where) {
+        // 更新所有
+        for (auto& row : table.m_data)
+            row[set_index] = name_val_set_value[1];
+    } else {
+        int where_index = -1;  // 定义where条件是判断哪一列
+        for (int i = 0; i < table.m_columns.size(); ++i) {
+            if (name_val_where[0] == table.m_columns[i].m_column_name)
+                where_index = i;
+        }
+        if (-1 == where_index) {
+            std::cout << "您输入的where条件 " << command_where << " 似乎不准确,什么也没修改..." << std::endl;
+            return;
+        }
+
+        // 根据条件查询修改
+        for (auto& row : table.m_data) {
+            if (name_val_where[1] == row[where_index])
+                row[set_index] = name_val_set_value[1];
+        }
+    }
+
+    // 写入文件
+    Tools::write_table_to_file(table, path);
+
+    std::cout << "已成功按照您的要求修改数据!" << std::endl;
 }
 
 void Order::_deal_unknown() {
