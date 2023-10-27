@@ -643,11 +643,11 @@ void Order::_deal_select() {
         if (show_columns.empty() or
             show_columns.end() != std::find(show_columns.begin(), show_columns.end(), table.m_columns[i].m_column_name)) {
             std::cout << table.m_columns[i].m_column_name << ' ';
-
             is_show[i] = true;
-            if (std::string::npos != pos_where and name_val[0] == table.m_columns[i].m_column_name)
-                where_index = i;
         }
+        // 这个要写在外面，因为所有的列都要走一步判断
+        if (std::string::npos != pos_where and name_val[0] == table.m_columns[i].m_column_name)
+            where_index = i;
     }
     std::cout << std::endl;  // 这里需要换行刷新缓冲区，否则等命令结束后外面把标准输出重定向回去就输出到终端了
 
