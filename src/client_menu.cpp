@@ -18,8 +18,8 @@
 std::string Menu::run() {
     // 只有第一次会主动打印这些
     if (0 == count++)
-        // 在../resources目录中存放着menu.txt，里面的内容就是数据库系统进入之后的提示内容
-        Tools::open_and_print(Order::resources_prefix + "menu_start.txt");
+        // 在../res目录中存放着menu.txt，里面的内容就是数据库系统进入之后的提示内容
+        Tools::open_and_print(Order::res_prefix + "menu_start.txt");
 
     // 以下是输入命令并且处理命令字符串的逻辑
     puts("请输入命令: ");  // puts()自带换行符

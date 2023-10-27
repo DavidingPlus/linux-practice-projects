@@ -226,7 +226,7 @@ public:
     /**
      * @brief 存放资源文件的相对目录前缀
      */
-    static const std::string resources_prefix;
+    static const std::string res_prefix;
 
 private:
     /**

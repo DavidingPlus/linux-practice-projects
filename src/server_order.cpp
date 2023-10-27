@@ -19,7 +19,7 @@ const std::vector<char> Order::banned_ch = {'\\', '/', ':', '*', '?', '"', '<', 
 
 const std::string Order::data_prefix = "../data/";
 
-const std::string Order::resources_prefix = "../resources/";
+const std::string Order::res_prefix = "../res/";
 
 /**
  * @brief 对类内函数的实现
@@ -86,7 +86,7 @@ void Order::run() {
 
 void Order::read_feedback() {
     // 打开文件
-    FILE* file = fopen(std::string(Order::resources_prefix + "feedback.txt").c_str(), "r");
+    FILE* file = fopen(std::string(Order::res_prefix + "feedback.txt").c_str(), "r");
     if (nullptr == file) {
         perror("fopen");
         exit(-1);
@@ -180,7 +180,7 @@ Order::Command_Type Order::_get_database_table(size_t blank_pos, const std::stri
 // show
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
-    Tools::open_and_print(resources_prefix + "menu_start.txt");
+    Tools::open_and_print(res_prefix + "menu_start.txt");
 }
 
 // tree / tree <dbname>
@@ -232,7 +232,7 @@ void Order::_deal_tree() {
 // q / quit
 void Order::_deal_quit() {
     // 从上面的逻辑判断，这个东西一定是对的指令
-    Tools::open_and_print(resources_prefix + "menu_end.txt");
+    Tools::open_and_print(res_prefix + "menu_end.txt");
 }
 
 // clear
@@ -799,6 +799,11 @@ void Order::_deal_insert() {
         _deal_unknown();
         return;
     }
+    // values后面没数据了
+    if ("values" == command_split.back()) {
+        _deal_unknown();
+        return;
+    }
 
     table_name = command_split[1];
 
@@ -809,12 +814,7 @@ void Order::_deal_insert() {
         return;
     }
 
-    // 处理values后面的数据，()
-    // values后面没数据了
-    if ("values" == command_split.back()) {
-        _deal_unknown();
-        return;
-    }
+    // 处理values后面的数据，(...)
     // 查询'('和')'
     size_t pos_left = m_command.find('(');
     if (std::string::npos == pos_left) {
@@ -870,7 +870,60 @@ void Order::_deal_insert() {
 void Order::_deal_update() {
     if (!_check_if_use())
         return;
-    // TODO
+
+    // 实例化Table对象
+    Table table;
+
+    std::string table_name;
+    std::vector<std::string> command_split = Tools::my_spilt(m_command, ' ');
+
+    size_t pos_set = m_command.find("set");
+    if (std::string::npos == pos_set) {
+        _deal_unknown();
+        return;
+    }
+    if ("set" != command_split[2]) {
+        _deal_unknown();
+        return;
+    }
+    if ("set" == command_split.back()) {
+        _deal_unknown();
+        return;
+    }
+
+    table_name = command_split[1];
+
+    // 判断表是否存在
+    std::string path = Order::data_prefix + m_dbname + '/' + table_name + ".dat";
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "表 " << table_name << " 不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    std::string command_after_set = std::string(m_command.begin() + pos_set + 3 + 1, m_command.end());
+    // 现在来处理后面的一坨答辩
+    // command_value是需要给某列设置的值,command_where就是列的条件
+    std::string command_value, command_where;
+    size_t pos_where = command_after_set.find("where");
+    if (std::string::npos != pos_where) {
+        command_value = std::string(command_after_set.begin(), command_after_set.begin() + pos_where);
+        if (command_value.empty()) {
+            _deal_unknown();
+            return;
+        }
+
+        // where后面必须有空格，两种情况，where后面没数据或者单词连起来了
+        if (pos_where + 5 == command_after_set.size() or ' ' != command_after_set[pos_where + 5]) {
+            _deal_unknown();
+            return;
+        }
+        command_where = std::string(command_after_set.begin() + pos_where + 5 + 1, command_after_set.end());
+
+    } else
+        command_value = command_after_set;
+
+    std::cout << '(' << command_value << ')' << std::endl;
+    std::cout << '(' << command_where << ')' << std::endl;
 }
 
 void Order::_deal_unknown() {

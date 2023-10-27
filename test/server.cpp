@@ -212,9 +212,9 @@ int main() {
 
                     // 我们设计order里面的标准输出全部重定向文件当中，这样我们可以非常方便的读取m_feedback，完事之后再设置回去
                     // 先把文件长度截断为0，然后从头开始写，可以下面这么做，我这里在open中加入O_TRUNC也可以
-                    // truncate(std::string(Order::resources_prefix + "feedback.txt").c_str(), 0);
+                    // truncate(std::string(Order::res_prefix + "feedback.txt").c_str(), 0);
 
-                    int fd = open(std::string(Order::resources_prefix + "feedback.txt").c_str(), O_RDWR | O_TRUNC);
+                    int fd = open(std::string(Order::res_prefix + "feedback.txt").c_str(), O_RDWR | O_TRUNC);
                     if (-1 == fd) {
                         perror("open");
                         return -1;

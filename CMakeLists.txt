@@ -31,5 +31,5 @@ add_executable(server
 )
 
 # 指定头文件的搜索路径，要放在前面两个的后面，因为是根据可执行文件指定的
-target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/include)
