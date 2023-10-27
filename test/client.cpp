@@ -52,7 +52,7 @@ int main(int argc, char* const argv[]) {
         return -1;
     }
 
-    std::cout << "服务器连接成功!" << std::endl
+    std::cout << "连接服务端成功!" << std::endl
               << std::endl;
 
     // 3.开始通信
@@ -72,7 +72,7 @@ int main(int argc, char* const argv[]) {
             return -1;
         }
         if (0 == len) {
-            std::cout << "服务器关闭了..." << std::endl;
+            std::cout << "服务端关闭了..." << std::endl;
             break;
         } else if (len > 0) {
             std::cout << std::endl
