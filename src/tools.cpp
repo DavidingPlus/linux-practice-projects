@@ -15,7 +15,7 @@
  * @brief 实现头文件中声明的工具函数
  */
 
-void open_and_print(const std::string& path) {
+void Tools::open_and_print(const std::string& path) {
     // 打开文件
     FILE* file = fopen(path.c_str(), "r");
     if (nullptr == file) {
@@ -46,7 +46,7 @@ void open_and_print(const std::string& path) {
     fclose(file);
 }
 
-std::vector<std::string> my_spilt(const std::string& str, const char& ch) {
+std::vector<std::string> Tools::my_spilt(const std::string& str, const char& ch) {
     // 在我们的项目中，用于切割 ','
     // 例如: " name string , id int , gender string "
     size_t pos = std::string::npos;
@@ -68,14 +68,14 @@ std::vector<std::string> my_spilt(const std::string& str, const char& ch) {
     return ret;
 }
 
-void pop_space(std::string& str) {
+void Tools::pop_space(std::string& str) {
     if (' ' == str.front())
         str.erase(str.begin());
     if (' ' == str.back())
         str.pop_back();
 }
 
-bool check_has_any(const std::string& str, const std::vector<char>& chs) {
+bool Tools::check_has_any(const std::string& str, const std::vector<char>& chs) {
     for (auto& ch : chs)
         if (std::string::npos != str.find(ch))
             return true;
@@ -84,7 +84,7 @@ bool check_has_any(const std::string& str, const std::vector<char>& chs) {
 }
 
 //********这两个函数为了省事，我是让chat帮我写的，我提供了存储的思路，就是write_函数里面的思路********/
-void write_table_to_file(const Table& table, const std::string& path) {
+void Tools::write_table_to_file(const Table& table, const std::string& path) {
     FILE* file = fopen(path.c_str(), "w");
     if (nullptr == file) {
         perror("fopen");
@@ -119,7 +119,7 @@ void write_table_to_file(const Table& table, const std::string& path) {
     fclose(file);
 }
 
-Table read_table_from_file(const std::string& path) {
+Table Tools::read_table_from_file(const std::string& path) {
     Table table;
 
     // 按照写入的格式读取即可

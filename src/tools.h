@@ -20,6 +20,10 @@
 #include "server_table.h"
 
 /**
+ * @brief 我还是习惯包装一个命名空间
+ */
+namespace Tools {
+/**
  * @brief 打开对应位置的文件，并且将里面的内容打印出来，定义成为extern，因为两个源文件都需要使用
  * @param  path，文件对应的目录，可能是绝对路径，也可能是相对路径
  */
@@ -62,5 +66,7 @@ void write_table_to_file(const Table& table, const std::string& path);
  * @return Table
  */
 Table read_table_from_file(const std::string& path);
+
+}  // namespace Tools
 
 #endif

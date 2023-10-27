@@ -180,7 +180,7 @@ Order::Command_Type Order::_get_database_table(size_t blank_pos, const std::stri
 // show
 void Order::_deal_show() {
     // 同退出的逻辑一样，进入这里一定是正确的命令
-    open_and_print(resources_prefix + "menu_start.txt");
+    Tools::open_and_print(resources_prefix + "menu_start.txt");
 }
 
 // tree / tree <dbname>
@@ -232,7 +232,7 @@ void Order::_deal_tree() {
 // q / quit
 void Order::_deal_quit() {
     // 从上面的逻辑判断，这个东西一定是对的指令
-    open_and_print(resources_prefix + "menu_end.txt");
+    Tools::open_and_print(resources_prefix + "menu_end.txt");
 }
 
 // clear
@@ -270,7 +270,7 @@ void Order::_deal_create_database() {
 
     // 我想要把数据库创建在data目录中，需要做特殊字符的判断
     // 不能出现 \ / : * ? " < > |
-    if (check_has_any(command_dbname, banned_ch)) {
+    if (Tools::check_has_any(command_dbname, banned_ch)) {
         std::cout << "数据库命名 \"" << command_dbname << "\" 当中带有非法字符,请重新输入!" << std::endl;
         return;
     }
@@ -414,7 +414,7 @@ void Order::_deal_create_table() {
 
     // 检测表名是否符合命名规范
     // 不能出现 \ / : * ? " < > |
-    if (check_has_any(table_name, banned_ch)) {
+    if (Tools::check_has_any(table_name, banned_ch)) {
         std::cout << "表命名 \"" << table_name << "\" 当中带有非法字符,请重新输入!" << std::endl;
         return;
     }
@@ -432,7 +432,7 @@ void Order::_deal_create_table() {
     // 处理column_name和column_type
     std::string column_string = std::string(m_command.begin() + pos_left + 1, m_command.begin() + pos_right);
     // 在处理之前，我们把收尾的空格弹掉(如果存在)，方便判断最后一个列是否具有 ','
-    pop_space(column_string);
+    Tools::pop_space(column_string);
 
     // 判断 ','
     if (',' == column_string.back()) {
@@ -441,22 +441,22 @@ void Order::_deal_create_table() {
     }
 
     // 现在按 ',' 进行分割
-    auto type_name_s = my_spilt(column_string, ',');
+    auto type_name_s = Tools::my_spilt(column_string, ',');
     for (auto& row : type_name_s) {
         // 处理每一行
         // 先把首尾的空格弹掉
-        pop_space(row);
+        Tools::pop_space(row);
         // std::cout << '(' << row << ')' << std::endl;
 
         // 现在的数据只可能是 "<column> <type>"，也就是只有一个空格
-        std::vector<std::string> type_name = my_spilt(row, ' ');
+        std::vector<std::string> type_name = Tools::my_spilt(row, ' ');
         if (2 != type_name.size()) {
             _deal_unknown();
             return;
         }
 
         // 检查名称
-        if (check_has_any(type_name[0], banned_ch)) {
+        if (Tools::check_has_any(type_name[0], banned_ch)) {
             std::cout << "字段名称 \"" << type_name[0] << "\" 当中含有非法字符,请重新输入!" << std::endl;
             return;
         }
@@ -472,7 +472,7 @@ void Order::_deal_create_table() {
     // 存储到文件中，path在前面已经定义
     // Table结构体里面使用了vector，导致大小不确定，如果直接写入结构体，在读取的时候新的Table不知道大小是多少，会段错误
     // 因此在写入的时候我需要执行相关的规则才能保证正确的写入
-    write_table_to_file(table, path);
+    Tools::write_table_to_file(table, path);
 
     // 输出反馈
     std::cout << "表 " << table.m_table_name << " 创建成功!" << std::endl;
@@ -555,10 +555,10 @@ void Order::_deal_select() {
     std::vector<std::string> show_columns;
     // 为*表示全部展示，show_column为空
     if ("*" != command_columns) {
-        show_columns = my_spilt(command_columns, ',');
+        show_columns = Tools::my_spilt(command_columns, ',');
         for (auto& column : show_columns) {
             // 去掉多余的空格
-            pop_space(column);
+            Tools::pop_space(column);
             // std::cout << '(' << column << ')' << std::endl;
             // 如果逗号之间的<column>中间还含有空格，命令肯定不对
             if (std::string::npos != column.find(' ')) {
@@ -606,9 +606,20 @@ void Order::_deal_select() {
             return;
         }
 
-        name_val = my_spilt(command_after_where, '=');
-        for (auto& each : name_val)
-            pop_space(each);
+        name_val = Tools::my_spilt(command_after_where, '=');
+        if (2 != name_val.size()) {
+            std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        for (auto& each : name_val) {
+            Tools::pop_space(each);
+            // 去除头尾后如果还有空格就不对
+            if (std::string::npos != each.find(' ')) {
+                std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+                return;
+            }
+        }
     }
 
     // 判断表文件是否存在
@@ -619,7 +630,7 @@ void Order::_deal_select() {
     }
 
     // 这时候读入table对象，因为要比对了
-    table = read_table_from_file(path);
+    table = Tools::read_table_from_file(path);
 
     std::cout << "表 " << table.m_table_name << " 查询结果如下: " << std::endl;
 
@@ -641,8 +652,9 @@ void Order::_deal_select() {
     std::cout << std::endl;  // 这里需要换行刷新缓冲区，否则等命令结束后外面把标准输出重定向回去就输出到终端了
 
     // 显示数据
+    bool flag = false;
     for (auto& row : table.m_data) {
-        bool flag = false;
+        flag = false;
         for (int i = 0; i < table.m_columns.size(); ++i) {
             // 没有where
             if (std::string::npos == pos_where) {
@@ -653,7 +665,7 @@ void Order::_deal_select() {
             // 有where
             else {
                 // 先满足规则条件才能进行后面的输出
-                if (name_val[1] == row[where_point]) {
+                if (-1 != where_point and name_val[1] == row[where_point]) {
                     flag = true;
                     if (is_show[i])
                         std::cout << row[i] << ' ';
@@ -670,14 +682,188 @@ void Order::_deal_select() {
 void Order::_deal_delete() {
     if (!_check_if_use())
         return;
-    // TODO
+
+    // 实例化Table对象
+    Table table;
+
+    // 如果没有where，那么只能存在一个空格；如果有where，那么where一定是第三个单词的位置
+    std::string table_name;
+    std::vector<std::string> command_split = Tools::my_spilt(m_command, ' ');
+
+    size_t pos_where = m_command.find("where");
+    if (std::string::npos == pos_where) {
+        if (2 != command_split.size()) {
+            _deal_unknown();
+            return;
+        }
+
+    } else {
+        if ("where" != command_split[2]) {
+            _deal_unknown();
+            return;
+        }
+    }
+    table_name = command_split[1];
+
+    // 判断表是否存在
+    std::string path = Order::data_prefix + m_dbname + '/' + table_name + ".dat";
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "表 " << table_name << " 不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    // 读出table的内容
+    table = Tools::read_table_from_file(path);
+
+    // 开始delete
+    if (std::string::npos == pos_where)
+        table.m_data.clear();
+    else {
+        // 拿到where后面的命令
+        if (3 == command_split.size()) {  // where后面没有命令了
+            _deal_unknown();
+            return;
+        }
+        // 和前面那个where处理类似
+        std::string command_after_where = std::string(m_command.begin() + pos_where + 5 + 1, m_command.end());
+        if (std::string::npos == command_after_where.find('=') or std::string::npos != command_after_where.find("==")) {  // 我怕输入 == ，这里还是判断一下
+            std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        std::vector<std::string> name_val = Tools::my_spilt(command_after_where, '=');
+        if (2 != name_val.size()) {
+            std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+            return;
+        }
+
+        for (auto& each : name_val) {
+            Tools::pop_space(each);
+            // 去除头尾后如果还有空格就不对
+            if (std::string::npos != each.find(' ')) {
+                std::cout << "您输入的where条件 " << command_after_where << " 不正确,请检查之后重新输入" << std::endl;
+                return;
+            }
+        }
+
+        // 搜寻字段
+        int where_point = -1;  // 定义where条件是判断哪一列
+        for (int i = 0; i < table.m_columns.size(); ++i)
+            if (name_val[0] == table.m_columns[i].m_column_name)
+                where_point = i;
+
+        // 删除对应数据
+        if (-1 != where_point) {
+            bool flag = false;
+            for (int i = 0; i < table.m_data.size(); ++i)
+                if (name_val[1] == table.m_data[i][where_point]) {
+                    flag = true;
+                    table.m_data.erase(table.m_data.begin() + i);
+                    --i;  // 删除之后所有人的下标前移，需要同步变化
+                }
+
+            if (!flag) {  // 啥都没删掉
+                Tools::write_table_to_file(table, path);
+                std::cout << "您输入的where条件 " << command_after_where << " 似乎不准确,什么也没删掉..." << std::endl;
+                return;
+            }
+        } else {  // 啥都没删掉
+            Tools::write_table_to_file(table, path);
+            std::cout << "您输入的where条件 " << command_after_where << " 似乎不准确,什么也没删掉..." << std::endl;
+            return;
+        }
+    }
+    // 写回去
+    Tools::write_table_to_file(table, path);
+    std::cout << "您指定的数据已经成功删除!" << std::endl;
 }
 
-// insert <table> values (<const-value>[, <const-value>...])
+// insert <table> values (<const-value>, <const-value>, ...)
 void Order::_deal_insert() {
     if (!_check_if_use())
         return;
-    // TODO
+
+    // 实例化Table对象
+    Table table;
+
+    // 如果没有where，那么只能存在一个空格；如果有where，那么where一定是第三个单词的位置
+    std::string table_name;
+    std::vector<std::string> command_split = Tools::my_spilt(m_command, ' ');
+
+    size_t pos_values = m_command.find("values");
+    if (std::string::npos == pos_values) {
+        _deal_unknown();
+        return;
+    }
+    if ("values" != command_split[2]) {
+        _deal_unknown();
+        return;
+    }
+
+    table_name = command_split[1];
+
+    // 判断表是否存在
+    std::string path = Order::data_prefix + m_dbname + '/' + table_name + ".dat";
+    if (0 != access(path.c_str(), F_OK)) {
+        std::cout << "表 " << table_name << " 不存在,请检查名称并修改!" << std::endl;
+        return;
+    }
+
+    // 处理values后面的数据，()
+    // values后面没数据了
+    if ("values" == command_split.back()) {
+        _deal_unknown();
+        return;
+    }
+    // 查询'('和')'
+    size_t pos_left = m_command.find('(');
+    if (std::string::npos == pos_left) {
+        _deal_unknown();
+        return;
+    }
+    size_t pos_right = m_command.find(')');
+    if (std::string::npos == pos_right) {
+        _deal_unknown();
+        return;
+    }
+    // 如果末尾不是 ')' 则不对
+    if (')' != m_command.back()) {
+        _deal_unknown();
+        return;
+    }
+
+    std::string command_values = std::string(m_command.begin() + pos_left + 1, m_command.begin() + pos_right);
+    // 如果末尾含有空格，将其弹掉
+    if (' ' == command_values.back())
+        command_values.pop_back();
+    // 如果弹掉之后末尾是 ',' 则不对
+    if (',' == command_values.back()) {
+        std::cout << "values末尾不需要 ','!请检查之后重试!" << std::endl;
+        return;
+    }
+
+    // 把table读进来
+    table = Tools::read_table_from_file(path);
+
+    std::vector<std::string> values = Tools::my_spilt(command_values, ',');
+    // 如果个数不符合则不对
+    if (table.m_columns.size() != values.size()) {
+        std::cout << "您插入的一行数据字段个数不符合表 " << table.m_table_name << " 的要求,请检查之后重试!" << std::endl;
+        return;
+    }
+    std::vector<std::string> new_row;
+
+    // 去掉首尾空格，并且插入数据
+    for (auto& each : values) {
+        Tools::pop_space(each);
+        new_row.push_back(each);
+    }
+    table.m_data.push_back(new_row);
+
+    // 写入文件
+    Tools::write_table_to_file(table, path);
+
+    std::cout << "已成功插入您输入的数据!" << std::endl;
 }
 
 // update <table> set <column> = <const-value> [where <cond>]
