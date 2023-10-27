@@ -1,4 +1,5 @@
 # g++ ../test/server.cpp -I ../include/ -l mysrc -L ../res/ -std=c++20 -fsanitize=address
+# g++ ../test/client.cpp -I ../include/ -l mysrc -L ../res/ -std=c++20 -fsanitize=address
 
 # 定义目标
 target_client = client
