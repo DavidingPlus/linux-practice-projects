@@ -21,7 +21,7 @@ using namespace std;
 #define Max_ipV4_Size 16
 
 // 存储文件的相对路径
-static const string prefix_path = "../resources/";
+static const string prefix_path = "../res/";
 
 // 子线程的业务函数
 void* Work_Callback(void* args);
