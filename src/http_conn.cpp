@@ -10,7 +10,7 @@
 // 类外初始化初始化静态成员，不能在类内成员函数中初始化，在main函数中修改
 int Http_Conn::_epollfd = -1;
 int Http_Conn::_user_count = 0;
-const char* Http_Conn::_doc_root = "/home/lzx0626/WebServer/resources";
+const char* Http_Conn::_doc_root = "/home/lzx0626/DavidingPlus/Projects/res";
 
 const char* Http_Conn::_ok_200_title = "OK";
 const char* Http_Conn::_error_400_title = "Bad Request";
@@ -245,7 +245,7 @@ char* Http_Conn::get_line_address() {
 }
 
 Http_Conn::HTTP_CODE Http_Conn::do_request() {
-    // /home/lzx0626/webserver/resources
+    // /home/lzx0626/webserver/res
     strcpy(_real_file, _doc_root);
     int len = strlen(_doc_root);
     strncpy(_real_file + len, _url, FILENAME_LEN - len - 1);
