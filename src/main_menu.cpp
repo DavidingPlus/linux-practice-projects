@@ -49,7 +49,7 @@ void Menu::run(call_back call) {
 
 void Menu::_init(int connect_fd) {
     // 工作目录是build目录，从这个目录开始算
-    file_path = std::string("../src/username_password.txt");
+    file_path = std::string("../res/username_password.txt");
     // 初始化文件描述符
     this->connect_fd = connect_fd;
 }
