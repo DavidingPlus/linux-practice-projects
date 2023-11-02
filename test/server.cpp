@@ -159,9 +159,9 @@ int main() {
 
                 // 设置读取非阻塞，必须设置，虽然在这个示例当中没有太大影响
                 // 但是IO多路复用技术是建立在非阻塞IO基础上的
-                int flag = fcntl(connect_fd, F_GETFD);
+                int flag = fcntl(connect_fd, F_GETFL);
                 flag |= O_NONBLOCK;
-                fcntl(connect_fd, F_SETFD, flag);
+                fcntl(connect_fd, F_SETFL, flag);
 
                 // 将新客户端加入到检测事件
                 struct epoll_event connect_event;
