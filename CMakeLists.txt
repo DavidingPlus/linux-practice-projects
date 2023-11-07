@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
 # 设置cmake编译器版本，这两条命令要放在最上面命令的下面，其他命令的前面，否则无法生效
-set (CMAKE_C_COMPILER "/usr/bin/gcc-13")
-set (CMAKE_CXX_COMPILER "/usr/bin/g++-13")
+# 由于我们配置了ccache，所以这里要设置为gcc和g++，这样才能用我们配置的软连接代替系统设置的，才能进入ccache
+set (CMAKE_C_COMPILER "gcc")
+set (CMAKE_CXX_COMPILER "g++")
 
 project(MyProject)
 
