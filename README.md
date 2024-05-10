@@ -1,4 +1,4 @@
-# Database_System
+# Database-System
 
 老白课程的期末实战项目，自己准备实现一份，用`cmake`工具进行编写构建.
 
