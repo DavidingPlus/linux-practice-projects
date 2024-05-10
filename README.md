@@ -1,4 +1,4 @@
-# File_Transfer
+# File-Transfer
 
 在`Linux下`通过`TCP`协议，实现一个简易的文件传输工具，正在开发中...
 
